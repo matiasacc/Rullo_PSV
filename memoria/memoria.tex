@@ -67,6 +67,7 @@ $L$ entre apoyos & \vL   & mm  & Masa por correa         & \vmb & kg \\
 $S_u$            & \vSu  & MPa & Desarrollo              & \vLp & mm \\
 $S_y$            & \vSy  & MPa & Frecuencia medida $f$   & \vfr & Hz \\
 $E$              & \vE   & MPa & Inicio $a$              & \vainicio & mm \\
+Engomado $e$\supu & \veg  & mm  & & & \\
 \midrule
 \multicolumn{3}{c}{Accionamiento} & \multicolumn{3}{c}{Superficie} \\
 \midrule
@@ -76,7 +77,7 @@ Velocidad $n$ & \vn & rpm & & & \\
 \end{tabular}
 \end{center}
 
-Propiedades de la sección: $d=\vdint$~mm, $A=\vArea$~mm$^2$, $I=\vI$~mm$^4$, $J=\vJ$~mm$^4$.
+Propiedades de la sección de acero (la goma no aporta rigidez\supu): $d=\vdint$~mm, $A=\vArea$~mm$^2$, $I=\vI$~mm$^4$, $J=\vJ$~mm$^4$.
 
 % =================================================================
 \section{Cargas}
@@ -89,7 +90,7 @@ T=4\,m\,L_t^2\,f^2=\vTb~\text{N por correa}
 Con ramales paralelos la fuerza sobre el rullo es $F=2\,n\,T=\vF$~N, repartida en el ancho del
 manchón $B=n\cdot\text{ancho}=\vB$~mm: $q_y=F/B=\vqy$~N/mm, entre $x=a$ y $x=a+B$ ($b=\vbfin$~mm).
 
-\textbf{Gravedad (plano $z$).} Peso propio $w=\vw$~N/mm en todo $L$ y mitad del peso del
+\textbf{Gravedad (plano $z$).} Peso propio de tubo y engomado $w=\vw$~N/mm en todo $L$ y mitad del peso del
 manchón\supu\ $q_z=\vqz$~N/mm en $B$.
 
 \textbf{Torque.} $T=P/\omega=\vTcero$~N$\cdot$mm, constante; entra por un extremo y lo toman las
@@ -144,6 +145,13 @@ CS_{\text{fatiga}}=\frac{1}{\sigma'_m/S_u+\sigma'_a/S_e}=\vcsb
 CS_{\text{fluencia}}=\frac{S_y}{\sigma'_{\max}}=\vflb
 \]
 
+\textbf{Diagrama S-N de la pieza} (ecs.~29--32): recta entre $(10^3;\,0{,}9S_u)$ y $(10^6;\,S_e)$,
+horizontal después de $10^6$. La línea de trazos es la tensión alternante equivalente de la sección más
+solicitada, $\sigma_a/(1-\sigma'_m/S_u)=\vsrev$~MPa (48-b).
+\begin{center}
+\includegraphics[width=0.75\textwidth]{figuras/diagrama_sn.pdf}
+\end{center}
+
 \textbf{Secciones con concentrador.} $K_f=1+q(K_t-1)$ (6), $q$ según Neuber (9)--(10)\supu.
 $K_t$ y $K_{ts}$ del Anexo~2.
 \begin{center}
@@ -171,11 +179,22 @@ Flecha máxima [mm]         & \vfl \\
 Un $CS_{\text{fatiga}}<1$ indica vida limitada (ecs.~48-b y 32); el valor admisible queda a criterio del diseñador\supu.
 
 % =================================================================
+\section{Verificaciones complementarias\supu}
+Fuera del compendio.
+\begin{itemize}\setlength\itemsep{1pt}
+\item Primera velocidad crítica de flexión (viga uniforme simplemente apoyada, sin masa del manchón):
+$n_c=\frac{30}{\pi}\left(\frac{\pi}{L}\right)^2\sqrt{EI/\mu}=\vnc$~rpm; $n/n_c=\vrnc$.
+\item Desbalanceo residual con grado $G=\vG$~mm/s (ISO 21940-11): $F_u=M\,G\,\omega=\vFu$~N,
+$F_u/F=\vrFu$. Gira con el eje, por lo que en el material produce tensión media, no alternante.
+\end{itemize}
+
+% =================================================================
 \section{Supuestos y limitaciones}\label{sec:sup}
 \begin{itemize}\setlength\itemsep{1pt}
 \item[\supu] Tensión por correa $T=4\,m\,L_t^2\,f^2$ (cuerda vibrante): no figura en el compendio.
 \item[\supu] $L_t=(\text{desarrollo}-\pi D)/2$ si no se mide: ramales paralelos y rullos de igual diámetro.
 \item[\supu] Mitad del peso del manchón sobre cada rullo.
+\item[\supu] Engomado: solo peso y diámetro de apoyo del manchón ($D+2e$); densidad típica de caucho si no se carga el dato real.
 \item[\supu] Torque constante, tomado por las correas de forma pareja en $B$.
 \item[\supu] $f_T$ con el diámetro exterior del tubo; $K_{fs}$ aplicado al corte transversal en el eje neutro.
 \item[\supu] Coeficientes de Neuber leídos del texto del compendio: verificar contra el impreso.

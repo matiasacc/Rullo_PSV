@@ -45,6 +45,9 @@ sec("Geometría del tubo")
 inp("D", "Diámetro exterior D", 100, "mm")
 inp("t", "Espesor de pared t", 10, "mm")
 inp("L", "Distancia entre centros de rodamientos L", 1200, "mm", "Modelo: viga simplemente apoyada (ver hoja Fórmulas)")
+sec("Engomado (recubrimiento del tubo)")
+inp("eg", "Espesor del engomado", 10, "mm", "* Solo suma peso y cambia el diámetro de apoyo del manchón; su rigidez se desprecia (E goma << E acero)")
+inp("rhog", "Densidad de la goma", 1.3e-6, "kg/mm³", "* Valor típico de caucho; reemplazar por el dato del compuesto")
 sec("Manchón / correas (plano y: dirección de la tensión)")
 inp("nb", "Cantidad de correas", 20, "-")
 inp("bw", "Ancho de cada correa", 20, "mm", "Ancho del manchón B = cantidad × ancho")
@@ -63,6 +66,8 @@ inp("P", "Potencia transmitida P", 2.0, "kW")
 inp("n", "Velocidad del rullo n", 150, "rpm", "También se usa para pasar ciclos a horas (1 ciclo por vuelta)")
 inp("lado", "Lado por donde entra el torque (1 = izquierdo, 0 = derecho)", 1, "-",
     "* Supuesto: el torque entra por un extremo y las correas lo toman de forma pareja en el tramo cargado")
+sec("Balanceo (fuera del compendio)")
+inp("G", "Grado de calidad de balanceo G (ISO 21940-11)", 6.3, "mm/s", "* Desbalanceo residual admisible: e·ω = G")
 sec("Material")
 inp("Su", "Resistencia a rotura Su", 630, "MPa", "Ejemplo: AISI 1045 estirado en frío")
 inp("Sy", "Tensión de fluencia Sy", 530, "MPa")
@@ -106,12 +111,14 @@ der("J", "Momento polar J = 2I", f"=2*{N['I']}", "mm⁴", fmt="#,##0")
 der("c", "Fibra extrema c = D/2", f"={N['D']}/2", "mm", fmt="0.0")
 der("Q", "Momento estático Q = ⅔·(R³ - r³)", f"=2/3*(({N['D']}/2)^3-({N_d}/2)^3)", "mm³", "Corte transversal en el eje neutro", fmt="#,##0")
 der("bs", "Ancho resistente al corte b = 2t", f"=2*{N['t']}", "mm", fmt="0.0")
-der("w", "Peso propio w = ρ·g·A (si se incluye)", f"={N['pp']}*{N['rho']}*9.81*{N['A']}", "N/mm", fmt="0.0000")
+der("Ag", "Área del engomado Ag = π/4·((D+2e)² - D²)", f"=PI()/4*(({N['D']}+2*{N['eg']})^2-{N['D']}^2)", "mm²", fmt="0.0")
+der("w", "Peso propio w = g·(ρ·A + ρg·Ag) (si se incluye)", f"={N['pp']}*9.81*({N['rho']}*{N['A']}+{N['rhog']}*{N['Ag']})", "N/mm",
+    "Tubo + engomado", fmt="0.0000")
 der("cl", "Ancho del manchón B = cantidad × ancho", f"={N['nb']}*{N['bw']}", "mm", fmt="0.0")
 der("b", "Distancia del fin del manchón al apoyo derecho b = L - a - B", f"={N['L']}-{N['a']}-{N['cl']}", "mm",
     "Debe ser ≥ 0 (si da negativo el manchón no entra entre apoyos)", fmt="0.0")
 der("mlin", "Masa por unidad de largo m = masa/desarrollo", f"={N['mb']}/({N['Lp']}/1000)", "kg/m", fmt="0.0000")
-der("Lt", "Largo libre del ramal Lt", f"=IF({N['Ltin']}>0,{N['Ltin']},({N['Lp']}-PI()*{N['D']})/2)", "mm", fmt="0.0")
+der("Lt", "Largo libre del ramal Lt", f"=IF({N['Ltin']}>0,{N['Ltin']},({N['Lp']}-PI()*({N['D']}+2*{N['eg']}))/2)", "mm", fmt="0.0")
 der("Tb", "Tensión por correa T = 4·m·Lt²·f²", f"=4*{N['mlin']}*({N['Lt']}/1000)^2*{N['fr']}^2", "N",
     "* Cuerda vibrante (tensiómetro sónico). No está en el compendio: a validar", fmt="0.0")
 der("Ttot", "Tensión total del manchón = T × cantidad", f"={N['Tb']}*{N['nb']}", "N", fmt="#,##0")
@@ -144,6 +151,15 @@ der("Vc", "Vida limitada: c = -1/b", f"=-1/{N['Vb']}", "-", "Ec. (31)", fmt="0.0
 der("sa_f", "√α Neuber flexión", f"=1.24-0.00225*{N['Su']}+1.6E-6*{N['Su']}^2-4.1E-10*{N['Su']}^3", "√mm", "Ec. (10)-a (Su en MPa)", fmt="0.0000")
 der("sa_t", "√α Neuber torsión", f"=0.958-0.001834*{N['Su']}+1.43E-6*{N['Su']}^2-4.1E-10*{N['Su']}^3", "√mm",
     "Ec. (10)-b. * Coeficientes leídos del texto extraído del PDF: verificar contra el compendio impreso", fmt="0.0000")
+der("mu", "Masa por unidad de largo que gira (tubo + goma)", f"=({N['rho']}*{N['A']}+{N['rhog']}*{N['Ag']})*1000", "kg/m", fmt="0.00")
+der("Mrot", "Masa que gira M", f"={N['mu']}*{N['L']}/1000", "kg", fmt="0.0")
+der("nc", "1ª velocidad crítica de flexión n_c = (30/π)·(π/L)²·√(EI/μ)", 
+    f"=30/PI()*(PI()/({N['L']}/1000))^2*SQRT({N['E']}*1E6*{N['I']}*1E-12/{N['mu']})", "rpm",
+    "* Viga uniforme simplemente apoyada (teoría de vigas, fuera del compendio). No incluye la masa del manchón", fmt="#,##0")
+der("rnc", "Relación n / n_c", f"={N['n']}/{N['nc']}", "-", "Lejos de 1 = sin resonancia de flexión", fmt="0.000")
+der("Fu", "Fuerza centrífuga por desbalanceo F_u = M·G·ω", f"={N['Mrot']}*{N['G']}/1000*2*PI()*{N['n']}/60", "N",
+    "* Gira con el eje: para el material es una carga fija (tensión media), no alternante", fmt="0.0")
+der("rFu", "Relación F_u / F manchón", f"={N['Fu']}/{N['W']}", "-", fmt="0.0000")
 
 dv = DataValidation(type="list", formula1='"Rectificado,Maquinado o estirado en frío,Laminado en caliente,Forjado"', allow_blank=False)
 ds.add_data_validation(dv); dv.add(f"B{term_row}")
@@ -378,6 +394,14 @@ rsec("Gobierna")
 rline("csg", "CS fatiga mínimo (cuerpo y concentradores)",
       f"=MIN({RS['csb']},{RS['cs0']},{RS['cs1']},{RS['cs2']})", "-", "* Si CS < 1: vida limitada, ver hoja Concentradores / Tensores")
 rline("flg", "CS fluencia mínimo", f"=MIN({RS['flb']},{RS['fl0']},{RS['fl1']},{RS['fl2']})", "-")
+def srev(sa, sm): return f"{sa}/(1-{sm}/{Su})"
+cands = [srev("Tensores!$G$11", "Tensores!$C$11"), srev("Tensores!$S$11", "Tensores!$C$11")]
+for k in "BCD":
+    on = f"Concentradores!{k}{R['Activa']}"
+    cands.append(f"{on}*" + srev(f"Concentradores!{k}{R[chr(65)+': σ'+chr(39)+'a [MPa]']}", f"Concentradores!{k}{R[chr(65)+': σ'+chr(39)+'m [MPa]']}"))
+    cands.append(f"{on}*" + srev(f"Concentradores!{k}{R['B: σ'+chr(39)+'a [MPa]']}", f"Concentradores!{k}{R['B: σ'+chr(39)+'m [MPa]']}"))
+rline("srev", "Tensión alternante equivalente máxima (σm = 0)", "=MAX(" + ",".join(cands) + ")", "MPa",
+      "σa/(1 - σ'm/Su), ec. (48)-b. Es la que se ubica en el diagrama S-N")
 rs[RS['csg']].font = fbold; rs[RS['flg']].font = fbold
 rr += 1
 rs.cell(rr, 1, "Los valores cargados son un ejemplo. CS: coeficiente de seguridad (notación del compendio).").font = fsmall
@@ -435,6 +459,35 @@ for j, k in enumerate("BCD"):
     r_ += 1
 
 # ------------------------------------------------------------------ GRAFICOS
+sn = wb.create_sheet("Diagrama SN")
+sn.column_dimensions["A"].width = 14; sn.column_dimensions["B"].width = 16; sn.column_dimensions["C"].width = 16
+sn["A1"] = "DIAGRAMA S-N DE LA PIEZA (ecs. 29-32 y 15). Escala log-log"; sn["A1"].font = fbold
+sn["A2"] = "Recta entre (10³ ; 0,9·Su) y (10⁶ ; Se); horizontal después de 10⁶ (acero, vida ilimitada)."; sn["A2"].font = fsmall
+for j, h in enumerate(["N [ciclos]", "S_N pieza [MPa]", "σa equivalente [MPa]"]):
+    c = sn.cell(4, 1 + j, h); c.font = fbold; c.fill = grey
+import math as _m
+Ns = [10 ** (3 + i * 0.2) for i in range(26)]
+for i, Nv in enumerate(Ns):
+    rr_ = 5 + i
+    sn.cell(rr_, 1, round(Nv, 3)).font = fb; sn.cell(rr_, 1).number_format = "0.00E+00"
+    sn.cell(rr_, 2, f"=IF(A{rr_}<=1E6,{N['Va']}*A{rr_}^(-1/{N['Vc']}),{N['Se']})").number_format = "0.0"
+    sn.cell(rr_, 3, f"=Resultados!{RS['srev']}").number_format = "0.0"
+    sn.cell(rr_, 2).font = fb; sn.cell(rr_, 3).font = fgreen
+last = 5 + len(Ns) - 1
+snc = ScatterChart(); snc.title = "Diagrama S-N"; snc.style = 13; snc.height = 10; snc.width = 18
+snc.x_axis.title = "N [ciclos]"; snc.y_axis.title = "S [MPa]"
+snc.x_axis.scaling.logBase = 10; snc.y_axis.scaling.logBase = 10
+snc.x_axis.scaling.min = 1000; snc.x_axis.scaling.max = 1E8
+snc.x_axis.delete = False; snc.y_axis.delete = False
+xs_ = Reference(sn, min_col=1, min_row=5, max_row=last)
+for colj, tit in ((2, "S-N pieza"), (3, "σa equivalente (sección crítica)")):
+    se_ = Series(Reference(sn, min_col=colj, min_row=5, max_row=last), xs_, title=tit)
+    se_.marker.symbol = "none"; se_.graphicalProperties.line.width = 19000
+    snc.series.append(se_)
+snc.series[1].graphicalProperties.line.dashStyle = "dash"
+sn.add_chart(snc, "E4")
+sn["E26"] = "Si la línea de σa equivalente queda debajo de Se: vida ilimitada. Si la corta en la recta: vida N (ec. 32)."; sn["E26"].font = fsmall
+
 gs = wb.create_sheet("Gráficos")
 def chart(col, title, ytitle, anchor):
     ch = ScatterChart(); ch.title = title; ch.style = 13
@@ -479,6 +532,9 @@ lines = [
 ("Ejes", "x a lo largo del rullo (desde el apoyo izquierdo), y dirección de la tensión del manchón, z dirección de la gravedad."),
 ("Carga y *", "Manchón: qy = F/B uniforme entre x = a y x = a + B. F = 2·T total (ramales paralelos). T por correa = 4·m·Lt²·f² (cuerda vibrante, no está en el compendio)."),
 ("Carga z *", "Peso propio del tubo (todo L) y mitad del peso del manchón repartida en B (opcionales)."),
+("Engomado *", "Suma peso (plano z) y define el diámetro de apoyo del manchón (D + 2e). Su rigidez no se cuenta (E goma << E acero)."),
+("Desbalanceo *", "F_u = M·e·ω² con e·ω = G (ISO 21940-11). Gira con el eje: tensión media, no alternante. Se informa la relación F_u/F."),
+("Velocidad crítica *", "n_c = (30/π)·(π/L)²·√(EI/μ), viga uniforme simplemente apoyada. Fuera del compendio."),
 ("Combinación", "Cada plano se resuelve por separado; M = √(My² + Mz²) y V = √(Vy² + Vz²) (sección circular). Flecha total = √(fy² + fz²)."),
 ("Giro", "El eje gira y la carga no: la flexión es completamente alternante en cada punto (σm = 0, σa = σ0). 1 ciclo por vuelta."),
 ("Torque *", "Entra por un extremo y las correas lo toman de forma pareja en el tramo cargado: T(x) constante hasta el inicio de la carga, lineal hasta 0 al final. Torque constante en el tiempo: τa = 0."),
@@ -536,10 +592,12 @@ dmap = [("vD","D"),("vt","t"),("vL","L"),("vnb","nb"),("vbw","bw"),("vmb","mb"),
         ("vB","cl"),("vbfin","b"),("vmlin","mlin"),("vLt","Lt"),("vTb","Tb"),("vTtot","Ttot"),("vF","W"),("vqy","qy"),
         ("vWz","Wz"),("vqz","qz"),("vw","w"),("vTcero","T0"),("vRunoy","R1y"),("vRdosy","R2y"),("vRunoz","R1z"),
         ("vRdosz","R2z"),("vRuno","R1"),("vRdos","R2"),("vchk","chk"),("vfS","fS"),("vfT","fT"),("vfC","fC"),
-        ("vSep","Sep"),("vSe","Se"),("vVa","Va"),("vVc","Vc")]
+        ("vSep","Sep"),("vSe","Se"),("vVa","Va"),("vVc","Vc"),
+        ("veg","eg"),("vrhog","rhog"),("vAg","Ag"),("vG","G"),("vmu","mu"),("vMrot","Mrot"),("vnc","nc"),("vrnc","rnc"),
+        ("vFu","Fu"),("vrFu","rFu")]
 for ln, k in dmap:
     nm(ln, N[k])
-for ln, k in [("vMmax","Mmax"),("vxM","xM"),("vsmax","smax"),("vfl","fl"),("vxfl","xfl"),("vcsb","csb"),("vxcsb","xcsb"),
+for ln, k in [("vsrev","srev"),("vMmax","Mmax"),("vxM","xM"),("vsmax","smax"),("vfl","fl"),("vxfl","xfl"),("vcsb","csb"),("vxcsb","xcsb"),
               ("vflb","flb"),("vcsg","csg"),("vflg","flg")]:
     nm(ln, f"Resultados!${RS[k][0]}${RS[k][1:]}")
 for ln, cell in [("vtxcrit","E4"),("vttaum","C8"),("vtsiga","E8"),("vtvma","G11"),("vtvmm","C11"),("vtvmmax","K11"),

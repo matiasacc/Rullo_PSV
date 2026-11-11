@@ -89,6 +89,27 @@ else:
     fig.tight_layout()
     fig.savefig(raiz / "memoria" / "figuras" / "diagramas.pdf")
 
+# diagrama S-N ------------------------------------------------------------
+def val(n):
+    hoja, ref = next(iter(wb.defined_names[n].destinations))
+    return wb[hoja][ref.replace("$", "")].value
+Va, Vc, Se, Su, srev = (val(k) for k in ("vVa", "vVc", "vSe", "vSu", "vsrev"))
+if None in (Va, Vc, Se, Su, srev):
+    faltan.append("diagrama S-N")
+else:
+    import numpy as np
+    Nn = np.logspace(3, 8, 200)
+    S = np.where(Nn <= 1e6, Va * Nn ** (-1 / Vc), Se)
+    fig, ax = plt.subplots(figsize=(6.0, 3.6))
+    ax.loglog(Nn, S, "k-", lw=1.4, label="S-N pieza")
+    ax.axhline(srev, color="k", ls="--", lw=1, label=r"$\sigma_a$ equivalente sección crítica")
+    ax.plot([1e3, 1e6], [0.9 * Su, Se], "ko", ms=3)
+    ax.annotate(r"$0{,}9\,S_u$", (1e3, 0.9 * Su), textcoords="offset points", xytext=(6, 4))
+    ax.annotate(r"$S_e$", (1e6, Se), textcoords="offset points", xytext=(4, 6))
+    ax.set_xlabel("N [ciclos]"); ax.set_ylabel("S [MPa]"); ax.set_xlim(1e3, 1e8)
+    ax.grid(which="both", lw=0.3, color="0.8"); ax.legend(frameon=False, loc="upper right")
+    fig.tight_layout(); fig.savefig(raiz / "memoria" / "figuras" / "diagrama_sn.pdf")
+
 if faltan:
     print("ATENCIÓN: sin valor calculado (abrir y guardar la planilla en Excel):", ", ".join(faltan))
     sys.exit(1)
