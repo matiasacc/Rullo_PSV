@@ -1,0 +1,191 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noshorthands]{babel}
+\usepackage{lmodern}
+\usepackage[margin=2.2cm,headheight=1.6cm,includehead]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs,tabularx,array}
+\usepackage{fancyhdr,lastpage}
+\usepackage[locale=DE,group-separator={.},group-minimum-digits=4,group-digits=integer]{siunitx}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+
+\input{datos.tex}
+
+% ---------------------------------------------------------------- encabezado
+\newcommand{\titulo}{Memoria de cálculo -- Rullo delantero torno PSV}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\IfFileExists{figuras/logo_dayco.png}{\includegraphics[height=1.1cm]{figuras/logo_dayco.png}}{\textsf{DAYCO}}}
+\fancyhead[R]{\small\titulo}
+\fancyfoot[R]{\small Página \thepage\ de \pageref{LastPage}}
+\fancyfoot[L]{\small Datos: \vArchivo\ (\vFechaDatos)}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\newcommand{\supu}{\textsuperscript{*}}   % supuesto a validar
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries \titulo}\\[2mm]
+Verificación estática y a fatiga\\
+\small Fuente de cálculo: Compendio de Cálculo Estructural II, FCEFyN--UNC 2024, cap.~14
+\end{center}
+
+% =================================================================
+\section{Objeto}
+Verificar a fluencia y a fatiga el rullo delantero (motriz) del torno PSV, que trabaja entre dos
+rodamientos, con los datos cargados en la planilla \texttt{\vArchivo}. Los valores marcados
+con \supu\ corresponden a supuestos a validar (sección~\ref{sec:sup}).
+
+% =================================================================
+\section{Modelo}
+Viga simplemente apoyada en los centros de los rodamientos. Ejes: $x$ a lo largo del rullo desde el
+apoyo izquierdo, $y$ en la dirección de la tensión del manchón y $z$ en la dirección de la gravedad.
+Cada plano se resuelve por separado y se combinan $M=\sqrt{M_y^2+M_z^2}$ y $V=\sqrt{V_y^2+V_z^2}$
+(sección circular). El eje gira y las cargas tienen dirección fija, por lo que la flexión es
+completamente alternante (un ciclo por vuelta).
+
+\begin{center}
+\includegraphics[width=0.85\textwidth]{figuras/dcl.png}
+\end{center}
+
+% =================================================================
+\section{Datos}
+\begin{center}
+\begin{tabular}{lrl@{\hspace{1.2cm}}lrl}
+\toprule
+\multicolumn{3}{c}{Tubo y material} & \multicolumn{3}{c}{Manchón} \\
+\midrule
+$D$ exterior     & \vD   & mm  & Cantidad de correas $n$ & \vnb & -- \\
+Espesor $t$      & \vt   & mm  & Ancho por correa        & \vbw & mm \\
+$L$ entre apoyos & \vL   & mm  & Masa por correa         & \vmb & kg \\
+$S_u$            & \vSu  & MPa & Desarrollo              & \vLp & mm \\
+$S_y$            & \vSy  & MPa & Frecuencia medida $f$   & \vfr & Hz \\
+$E$              & \vE   & MPa & Inicio $a$              & \vainicio & mm \\
+\midrule
+\multicolumn{3}{c}{Accionamiento} & \multicolumn{3}{c}{Superficie} \\
+\midrule
+Potencia $P$ & \vP & kW  & \multicolumn{3}{l}{\vterm} \\
+Velocidad $n$ & \vn & rpm & & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Propiedades de la sección: $d=\vdint$~mm, $A=\vArea$~mm$^2$, $I=\vI$~mm$^4$, $J=\vJ$~mm$^4$.
+
+% =================================================================
+\section{Cargas}
+\textbf{Tensión del manchón (plano $y$)\supu.} A partir de la frecuencia del ramal libre (cuerda vibrante):
+\[
+m=\frac{\text{masa}}{\text{desarrollo}}=\vmlin~\text{kg/m},\qquad
+L_t=\vLt~\text{mm},\qquad
+T=4\,m\,L_t^2\,f^2=\vTb~\text{N por correa}
+\]
+Con ramales paralelos la fuerza sobre el rullo es $F=2\,n\,T=\vF$~N, repartida en el ancho del
+manchón $B=n\cdot\text{ancho}=\vB$~mm: $q_y=F/B=\vqy$~N/mm, entre $x=a$ y $x=a+B$ ($b=\vbfin$~mm).
+
+\textbf{Gravedad (plano $z$).} Peso propio $w=\vw$~N/mm en todo $L$ y mitad del peso del
+manchón\supu\ $q_z=\vqz$~N/mm en $B$.
+
+\textbf{Torque.} $T=P/\omega=\vTcero$~N$\cdot$mm, constante; entra por un extremo y lo toman las
+correas de forma pareja en $B$\supu.
+
+\textbf{Reacciones} (equilibrio por plano):
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+ & Plano $y$ [N] & Plano $z$ [N] & Resultante [N] \\
+\midrule
+Rodamiento izquierdo & \vRunoy & \vRunoz & \vRuno \\
+Rodamiento derecho   & \vRdosy & \vRdosz & \vRdos \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =================================================================
+\section{Esfuerzos, tensiones y flecha}
+\begin{center}
+\includegraphics[width=0.85\textwidth]{figuras/diagramas.pdf}
+\end{center}
+Momento máximo $M=\vMmax$~N$\cdot$mm en $x=\vxM$~mm; $\sigma_0=M\,c/I=\vsmax$~MPa.
+Flecha máxima \vfl~mm en $x=\vxfl$~mm (doble integración numérica de $M_y/EI$ y $M_z/EI$).
+
+% =================================================================
+\section{Fatiga}
+\textbf{Resistencia de la pieza}, ec.~(20):
+$S_e=f_T\,f_C\,f_S\,f_1\,S_e'=\vfT\cdot\vfC\cdot\vfS\cdot\vfuno\cdot\vSep=\vSe$~MPa,
+con $S_e'=0{,}5\,S_u\le 690$~MPa (17), $f_T$ (21) con $D$ exterior\supu, $f_C=1$ por carga combinada (24) y
+$f_S=a\,S_u^{\,b}$ (25)--(26).
+
+\textbf{Procedimiento} (sección 7.1): tensor medio y tensor alternante; $K_f$ solo sobre la
+componente alternante (Tabla~14, material dúctil); Von Mises de cada tensor (72); Goodman (44)-b;
+fluencia por separado con el tensor máximo (77).
+
+\textbf{Sección crítica del cuerpo} ($x=\vtxcrit$~mm, $K_f=1$, punto en la fibra extrema;
+$x$ axial, $y$ radial, $z$ tangente, MPa):
+\[
+\sigma_m=\begin{bmatrix}0&0&\vttaum\\0&0&0\\\vttaum&0&0\end{bmatrix}
+\qquad
+\sigma_a=\begin{bmatrix}\vtsiga&0&0\\0&0&0\\0&0&0\end{bmatrix}
+\qquad
+\sigma_{\max}=\sigma_m+\sigma_a
+\]
+\[
+\sigma'_m=\vtvmm,\qquad \sigma'_a=\vtvma,\qquad \sigma'_{\max}=\vtvmmax~\text{MPa}
+\]
+\[
+CS_{\text{fatiga}}=\frac{1}{\sigma'_m/S_u+\sigma'_a/S_e}=\vcsb
+\qquad\qquad
+CS_{\text{fluencia}}=\frac{S_y}{\sigma'_{\max}}=\vflb
+\]
+
+\textbf{Secciones con concentrador.} $K_f=1+q(K_t-1)$ (6), $q$ según Neuber (9)--(10)\supu.
+$K_t$ y $K_{ts}$ del Anexo~2.
+\begin{center}
+\begin{tabular}{lccccccccl}
+\toprule
+Sección & $x$ [mm] & $K_t$ & $K_{ts}$ & $r$ [mm] & $K_f$ & $\sigma'_a$ & $\sigma'_m$ & $CS_{\text{fat}}$ & $CS_{\text{fl}}$ \\
+\midrule
+\vFilasConc
+\bottomrule
+\end{tabular}
+\end{center}
+Kf en la verificación a fluencia: \ifnum\vswfl=1 aplicado\else no aplicado\fi\supu.
+
+% =================================================================
+\section{Resultados}
+\begin{center}
+\begin{tabular}{lr}
+\toprule
+CS fatiga mínimo (Goodman) & \vcsg \\
+CS fluencia mínimo         & \vflg \\
+Flecha máxima [mm]         & \vfl \\
+\bottomrule
+\end{tabular}
+\end{center}
+Un $CS_{\text{fatiga}}<1$ indica vida limitada (ecs.~48-b y 32); el valor admisible queda a criterio del diseñador\supu.
+
+% =================================================================
+\section{Supuestos y limitaciones}\label{sec:sup}
+\begin{itemize}\setlength\itemsep{1pt}
+\item[\supu] Tensión por correa $T=4\,m\,L_t^2\,f^2$ (cuerda vibrante): no figura en el compendio.
+\item[\supu] $L_t=(\text{desarrollo}-\pi D)/2$ si no se mide: ramales paralelos y rullos de igual diámetro.
+\item[\supu] Mitad del peso del manchón sobre cada rullo.
+\item[\supu] Torque constante, tomado por las correas de forma pareja en $B$.
+\item[\supu] $f_T$ con el diámetro exterior del tubo; $K_{fs}$ aplicado al corte transversal en el eje neutro.
+\item[\supu] Coeficientes de Neuber leídos del texto del compendio: verificar contra el impreso.
+\item[\supu] $K_f$ en fluencia: ec.~(3) frente a ec.~(77), pendiente de definir.
+\item No incluye uniones soldadas ni atornilladas, cargas de la cuchilla ni efectos dinámicos.
+\item Fatiga de ciclos altos; sin daño acumulado por arranques y paradas.
+\end{itemize}
+
+% =================================================================
+\section{Registro de revisiones}
+\input{revisiones.tex}
+
+\end{document}

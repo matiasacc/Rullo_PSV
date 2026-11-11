@@ -1,0 +1,40 @@
+name: Memoria de cálculo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "planilla/**"
+      - "memoria/**"
+      - "scripts/exportar_datos.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  memoria:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Exportar datos de la planilla
+        run: |
+          pip install openpyxl matplotlib
+          python scripts/exportar_datos.py
+
+      - name: Compilar LaTeX
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: memoria.tex
+          working_directory: memoria
+
+      - name: Subir PDF actualizado
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Memoria actualizada [skip ci]"
+          file_pattern: "memoria/memoria.pdf memoria/datos.tex memoria/figuras/diagramas.pdf"

@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 fig, axs = plt.subplots(2,1,figsize=(8,5.6), dpi=130)
 def beam(ax, title, lab, wfull):
-    ax.set_xlim(-1.4,11.2); ax.set_ylim(-2.4,2.5); ax.axis("off")
-    ax.text(-1.3,2.2,title,fontsize=10,weight="bold")
+    ax.set_xlim(-1.4,11.2); ax.set_ylim(-2.4,2.9); ax.axis("off")
+    ax.text(-1.3,2.6,title,fontsize=10,weight="bold")
     ax.plot([0,10],[0,0],color="k",lw=3)
     for x0,n in ((0,"1"),(10,"2")):
         ax.add_patch(Polygon([[x0,0],[x0-0.35,-0.55],[x0+0.35,-0.55]],closed=True,fill=False,lw=1.2))

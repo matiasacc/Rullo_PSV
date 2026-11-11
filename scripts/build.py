@@ -525,5 +525,35 @@ for k, v in lines:
 
 for wsx in wb.worksheets:
     wsx.sheet_view.showGridLines = wsx.title in ("Cálculo x",)
+
+# ------------------------------------------------------------------ NOMBRES DEFINIDOS (para la memoria LaTeX)
+from openpyxl.workbook.defined_name import DefinedName
+def nm(name, ref):
+    wb.defined_names[name] = DefinedName(name, attr_text=ref)
+dmap = [("vD","D"),("vt","t"),("vL","L"),("vnb","nb"),("vbw","bw"),("vmb","mb"),("vLp","Lp"),("vfr","fr"),("vLtin","Ltin"),
+        ("vainicio","a"),("vpp","pp"),("vpm","pm"),("vP","P"),("vn","n"),("vlado","lado"),("vSu","Su"),("vSy","Sy"),("vE","E"),
+        ("vrho","rho"),("vterm","term"),("vfuno","f1"),("vswfl","swfl"),("vdint","d"),("vArea","A"),("vI","I"),("vJ","J"),
+        ("vB","cl"),("vbfin","b"),("vmlin","mlin"),("vLt","Lt"),("vTb","Tb"),("vTtot","Ttot"),("vF","W"),("vqy","qy"),
+        ("vWz","Wz"),("vqz","qz"),("vw","w"),("vTcero","T0"),("vRunoy","R1y"),("vRdosy","R2y"),("vRunoz","R1z"),
+        ("vRdosz","R2z"),("vRuno","R1"),("vRdos","R2"),("vchk","chk"),("vfS","fS"),("vfT","fT"),("vfC","fC"),
+        ("vSep","Sep"),("vSe","Se"),("vVa","Va"),("vVc","Vc")]
+for ln, k in dmap:
+    nm(ln, N[k])
+for ln, k in [("vMmax","Mmax"),("vxM","xM"),("vsmax","smax"),("vfl","fl"),("vxfl","xfl"),("vcsb","csb"),("vxcsb","xcsb"),
+              ("vflb","flb"),("vcsg","csg"),("vflg","flg")]:
+    nm(ln, f"Resultados!${RS[k][0]}${RS[k][1:]}")
+for ln, cell in [("vtxcrit","E4"),("vttaum","C8"),("vtsiga","E8"),("vtvma","G11"),("vtvmm","C11"),("vtvmmax","K11"),
+                 ("vttauaB","S8"),("vtvmaB","S11")]:
+    nm(ln, f"Tensores!${cell[0]}${cell[1:]}")
+cmap = [("x","x [mm]"),("on","Activa"),("Kt",None),("Kts",None),("r",None),("Kf","Kf = 1 + q·(Kt - 1)"),("Kfs","Kfs = 1 + qs·(Kts - 1)"),
+        ("sa","A: σ'a [MPa]"),("sm","A: σ'm [MPa]"),("cs","CS fatiga Goodman (mín A, B)"),("fl","CS fluencia"),("vida","Vida N [ciclos]")]
+for j, (k, roman) in enumerate(zip("BCD", ("uno", "dos", "tres"))):
+    for key, lab in cmap:
+        if lab is None:
+            dkey = {"Kt": "kKt", "Kts": "kKts", "r": "kr"}[key]
+            nm(f"vk{key}{roman}", f"Datos!${k}${conc_rows[dkey]}")
+        else:
+            nm(f"vk{key}{roman}", f"Concentradores!${k}${R[lab]}")
+
 wb.save("Rullo_PSV_estatico_fatiga.xlsx")
 print("saved")

@@ -1,0 +1,8 @@
+memoria/*.aux
+memoria/*.log
+memoria/*.out
+memoria/*.fls
+memoria/*.fdb_latexmk
+memoria/*.synctex.gz
+__pycache__/
+~$*.xlsx

@@ -12,7 +12,21 @@ Fuente de cálculo: *Compendio de Cálculo Estructural II*, FCEFyN-UNC 2024, cap
 | `scripts/` | `build.py` | Genera la planilla (openpyxl) |
 | `scripts/` | `dcl.py`, `dcl.png` | Diagrama de cuerpo libre insertado en la planilla |
 
-Para regenerar la planilla: `cd scripts && python3 dcl.py && python3 build.py`. Después hay que abrirla en Excel o recalcularla en LibreOffice para que aparezcan los valores.
+| `memoria/` | `memoria.tex`, `memoria.pdf` | Memoria de cálculo en LaTeX, toma los valores de la planilla |
+| `memoria/` | `revisiones.tex` | Registro de revisiones (se completa a mano) |
+| `scripts/` | `exportar_datos.py` | Lee la planilla y escribe `memoria/datos.tex` y `memoria/figuras/diagramas.pdf` |
+
+## Actualizar la memoria
+
+1. Cambiar datos en la planilla y **guardarla desde Excel** (así quedan los valores calculados).
+2. Agregar una fila en `memoria/revisiones.tex` si el cambio es relevante.
+3. Subir los cambios (`git push`). La acción de GitHub *Memoria de cálculo* exporta los datos, compila el LaTeX y sube `memoria/memoria.pdf` actualizado.
+
+En local: `python3 scripts/exportar_datos.py` y después `cd memoria && latexmk -pdf memoria.tex`.
+
+Logo: colocar `memoria/figuras/logo_dayco.png` (si no está, el encabezado muestra el texto DAYCO).
+
+Para regenerar la planilla desde cero (borra los datos cargados): `cd scripts && python3 dcl.py && python3 build.py`, mover el archivo a `planilla/` y abrirlo en Excel. Los valores de la planilla se exportan por nombres definidos (`v...`): no borrarlos.
 
 ## Modelo
 
