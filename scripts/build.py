@@ -68,6 +68,16 @@ inp("lado", "Lado por donde entra el torque (1 = izquierdo, 0 = derecho)", 1, "-
     "* Supuesto: el torque entra por un extremo y las correas lo toman de forma pareja en el tramo cargado")
 sec("Balanceo (fuera del compendio)")
 inp("G", "Grado de calidad de balanceo G (ISO 21940-11)", 6.3, "mm/s", "* Desbalanceo residual admisible: e·ω = G")
+sec("Masa que gira: eje (acero, densidad ρ de Material)")
+inp("DmI", "Muñón izquierdo: diámetro exterior", 60, "mm", "Tubo: entre las soldaduras (D, t). Muñón: desde la soldadura hacia afuera")
+inp("dmI", "Muñón izquierdo: diámetro interior (0 = macizo)", 0, "mm")
+inp("LmI", "Muñón izquierdo: largo total", 150, "mm", "Desde la soldadura izquierda hasta el extremo (incluye lo que queda fuera del apoyo)")
+inp("DmD", "Muñón derecho: diámetro exterior", 60, "mm")
+inp("dmD", "Muñón derecho: diámetro interior (0 = macizo)", 0, "mm")
+inp("LmD", "Muñón derecho: largo total", 150, "mm", "Desde la soldadura derecha hasta el extremo")
+sec("Masa que gira: engomado (espesor y densidad en Engomado)")
+inp("xg0", "Inicio del engomado, desde el apoyo izquierdo", 100, "mm")
+inp("Lg", "Largo del engomado", 1000, "mm", "Debe quedar sobre el tubo")
 sec("Material")
 inp("Su", "Resistencia a rotura Su", 630, "MPa", "Ejemplo: AISI 1045 estirado en frío")
 inp("Sy", "Tensión de fluencia Sy", 530, "MPa")
@@ -161,13 +171,31 @@ der("Vc", "Vida limitada: c = -1/b", f"=-1/{N['Vb']}", "-", "Ec. (31)", fmt="0.0
 der("sa_f", "√α Neuber flexión", f"=1.24-0.00225*{N['Su']}+1.6E-6*{N['Su']}^2-4.1E-10*{N['Su']}^3", "√mm", "Ec. (10)-a (Su en MPa)", fmt="0.0000")
 der("sa_t", "√α Neuber torsión", f"=0.958-0.001834*{N['Su']}+1.43E-6*{N['Su']}^2-4.1E-10*{N['Su']}^3", "√mm",
     "Ec. (10)-b. * Coeficientes leídos del texto extraído del PDF: verificar contra el compendio impreso", fmt="0.0000")
-der("mu", "Masa por unidad de largo que gira (tubo + goma)", f"=({N['rho']}*{N['A']}+{N['rhog']}*{N['Ag']})*1000", "kg/m", fmt="0.00")
-der("Mrot", "Masa que gira M", f"={N['mu']}*{N['L']}/1000", "kg", fmt="0.0")
+der("mu", "Masa por unidad de largo tubo + goma (para n_c)", f"=({N['rho']}*{N['A']}+{N['rhog']}*{N['Ag']})*1000", "kg/m",
+    "* n_c y peso propio w toman tubo + goma en todo L (sin muñones)", fmt="0.00")
+der("AmI", "Muñón izquierdo: área π/4·(Dm² - dm²)", f"=PI()/4*({N['DmI']}^2-{N['dmI']}^2)", "mm²", fmt="0.0")
+der("AmD", "Muñón derecho: área π/4·(Dm² - dm²)", f"=PI()/4*({N['DmD']}^2-{N['dmD']}^2)", "mm²", fmt="0.0")
+der("Ltu", "Largo del tubo L_tubo = x sold. der. - x sold. izq.", f"={N['xsD']}-{N['xsI']}", "mm", fmt="0.0")
+der("Meje", "Masa del eje M_eje = ρ·(A·L_tubo + A_mI·L_mI + A_mD·L_mD)",
+    f"={N['rho']}*({N['A']}*{N['Ltu']}+{N['AmI']}*{N['LmI']}+{N['AmD']}*{N['LmD']})", "kg", fmt="0.00")
+der("Mgoma", "Masa del engomado M_goma = ρg·Ag·L_g", f"={N['rhog']}*{N['Ag']}*{N['Lg']}", "kg", fmt="0.00")
+der("Mrot", "Masa que gira M = M_eje + M_goma", f"={N['Meje']}+{N['Mgoma']}", "kg", fmt="0.00")
+der("xG", "Centro de masa x_G (desde el apoyo izquierdo)",
+    f"=({N['rho']}*({N['A']}*{N['Ltu']}*({N['xsI']}+{N['xsD']})/2+{N['AmI']}*{N['LmI']}*({N['xsI']}-{N['LmI']}/2)"
+    f"+{N['AmD']}*{N['LmD']}*({N['xsD']}+{N['LmD']}/2))+{N['Mgoma']}*({N['xg0']}+{N['Lg']}/2))/{N['Mrot']}", "mm",
+    "Σ(mᵢ·xᵢ)/M de muñones, tubo y engomado", fmt="0.0")
+der("om", "Velocidad angular ω = 2π·n/60", f"=2*PI()*{N['n']}/60", "rad/s", fmt="0.00")
+der("eper", "Excentricidad admisible e_per = 1000·G/ω", f"=1000*{N['G']}/{N['om']}", "g·mm/kg",
+    "ISO 21940-11. g·mm/kg = µm", fmt="0.0")
+der("Uper", "Desbalance residual admisible U_per = e_per·M", f"={N['eper']}*{N['Mrot']}", "g·mm", "Rotor completo (eje + engomado)", fmt="#,##0")
+der("UperI", "U_per en el apoyo izquierdo = U_per·(L - x_G)/L", f"={N['Uper']}*({N['L']}-{N['xG']})/{N['L']}", "g·mm",
+    "* Reparto por palanca respecto del centro de masa: verificar contra ISO 21940-11", fmt="#,##0")
+der("UperD", "U_per en el apoyo derecho = U_per·x_G/L", f"={N['Uper']}*{N['xG']}/{N['L']}", "g·mm", "*", fmt="#,##0")
 der("nc", "1ª velocidad crítica de flexión n_c = (30/π)·(π/L)²·√(EI/μ)", 
     f"=30/PI()*(PI()/({N['L']}/1000))^2*SQRT({N['E']}*1E6*{N['I']}*1E-12/{N['mu']})", "rpm",
     "* Viga uniforme simplemente apoyada (teoría de vigas, fuera del compendio). No incluye la masa del manchón", fmt="#,##0")
 der("rnc", "Relación n / n_c", f"={N['n']}/{N['nc']}", "-", "Lejos de 1 = sin resonancia de flexión", fmt="0.000")
-der("Fu", "Fuerza centrífuga por desbalanceo F_u = M·G·ω", f"={N['Mrot']}*{N['G']}/1000*2*PI()*{N['n']}/60", "N",
+der("Fu", "Fuerza centrífuga por desbalanceo F_u = M·G·ω", f"={N['Mrot']}*{N['G']}/1000*{N['om']}", "N",
     "* Gira con el eje: para el material es una carga fija (tensión media), no alternante", fmt="0.0")
 der("rFu", "Relación F_u / F manchón", f"={N['Fu']}/{N['W']}", "-", fmt="0.0000")
 
@@ -712,6 +740,7 @@ lines = [
 ("5. Tensores", "Hoja Tensores: tensor medio, alternante y máximo en los puntos A y B de cada sección."),
 ("6. Vida", "Si algún CS de fatiga es < 1: vida limitada en ciclos y horas (hoja Concentradores)."),
 ("7. Soldaduras", "Datos > 'Soldaduras a tope tubo-muñón': posición x de cada soldadura, Su y Sy del muñón, electrodo y sobremonta. Resultado en hoja Soldadura y en Resultados."),
+("8. Balanceo", "Datos: grado G, muñones (diámetros y largo) y engomado (inicio y largo). Resultado en Datos: M_eje, M_goma, x_G, e_per, U_per total y por apoyo, F_u."),
 ("", ""),
 ("HIPÓTESIS", ""),
 ("Modelo de viga", "Simplemente apoyada en los centros de los rodamientos (los rodamientos permiten el giro de la sección)."),
@@ -720,6 +749,10 @@ lines = [
 ("Carga z *", "Peso propio del tubo (todo L) y mitad del peso del manchón repartida en B (opcionales)."),
 ("Engomado *", "Suma peso (plano z) y define el diámetro de apoyo del manchón (D + 2e). Su rigidez no se cuenta (E goma << E acero)."),
 ("Desbalanceo *", "F_u = M·e·ω² con e·ω = G (ISO 21940-11). Gira con el eje: tensión media, no alternante. Se informa la relación F_u/F."),
+("Masa que gira", "M = M_eje + M_goma. M_eje = ρ·(A·L_tubo + A_mI·L_mI + A_mD·L_mD), tubo entre soldaduras y muñones hacia afuera. M_goma = ρg·Ag·L_g."),
+("Desbalance admisible", "e_per = 1000·G/ω [g·mm/kg] ; U_per = e_per·M [g·mm] (ISO 21940-11, rotor rígido). Un solo G para todo el rotor."),
+("Reparto por apoyo *", "U_per,izq = U_per·(L - x_G)/L ; U_per,der = U_per·x_G/L (palanca respecto del centro de masa). Verificar contra la norma."),
+("n_c y w *", "La velocidad crítica y el peso propio toman tubo + goma en todo L (sin muñones ni largo real del engomado)."),
 ("Velocidad crítica *", "n_c = (30/π)·(π/L)²·√(EI/μ), viga uniforme simplemente apoyada. Fuera del compendio."),
 ("Combinación", "Cada plano se resuelve por separado; M = √(My² + Mz²) y V = √(Vy² + Vz²) (sección circular). Flecha total = √(fy² + fz²)."),
 ("Giro", "El eje gira y la carga no: la flexión es completamente alternante en cada punto (σm = 0, σa = σ0). 1 ciclo por vuelta."),
@@ -785,7 +818,10 @@ dmap = [("vD","D"),("vt","t"),("vL","L"),("vnb","nb"),("vbw","bw"),("vmb","mb"),
         ("vRdosz","R2z"),("vRuno","R1"),("vRdos","R2"),("vchk","chk"),("vfS","fS"),("vfT","fT"),("vfC","fC"),
         ("vSep","Sep"),("vSe","Se"),("vVa","Va"),("vVc","Vc"),
         ("veg","eg"),("vrhog","rhog"),("vAg","Ag"),("vG","G"),("vmu","mu"),("vMrot","Mrot"),("vnc","nc"),("vrnc","rnc"),
-        ("vFu","Fu"),("vrFu","rFu")]
+        ("vFu","Fu"),("vrFu","rFu"),
+        ("vDextmI","DmI"),("vDintmI","dmI"),("vLmI","LmI"),("vDextmD","DmD"),("vDintmD","dmD"),("vLmD","LmD"),
+        ("vxgcero","xg0"),("vLg","Lg"),("vAmI","AmI"),("vAmD","AmD"),("vLtubo","Ltu"),("vMeje","Meje"),("vMgoma","Mgoma"),
+        ("vxG","xG"),("vomega","om"),("veper","eper"),("vUper","Uper"),("vUperI","UperI"),("vUperD","UperD")]
 for ln, k in dmap:
     nm(ln, N[k])
 for ln, k in [("vsrev","srev"),("vMmax","Mmax"),("vxM","xM"),("vsmax","smax"),("vfl","fl"),("vxfl","xfl"),("vcsb","csb"),("vxcsb","xcsb"),

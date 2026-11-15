@@ -46,6 +46,7 @@ Para regenerar la planilla desde cero (borra los datos cargados): `cd scripts &&
 5. **Tensores**: tensor medio, alternante y máximo en los puntos A (fibra extrema) y B (eje neutro).
 6. Si CS de fatiga < 1: vida limitada en ciclos y horas (hoja Concentradores).
 7. **Soldaduras** (en Datos): posición x de cada soldadura a tope tubo-muñón, Su y Sy del muñón, electrodo (lista) y sobremonta (con sobremonta / maquinada al ras). Resultado en la hoja **Soldadura** y en Resultados.
+8. **Balanceo** (en Datos): grado G, muñones (diámetro exterior, interior y largo) y engomado (inicio y largo). Resultado en Datos: M_eje, M_goma, x_G, e_per, U_per total y por apoyo, F_u.
 
 ## Procedimiento de fatiga (compendio, sección 7.1)
 
@@ -70,6 +71,8 @@ Para regenerar la planilla desde cero (borra los datos cargados): `cd scripts &&
 - Coeficientes de Neuber (10)-a/b leídos del texto extraído del PDF: verificar contra el impreso.
 - Soldadura maquinada al ras: Kf = 1 (el Shigley no da valor; el compendio, cap. 18, indica maquinar la sobremonta).
 - Soldadura: Kf aplicado al corte transversal en el eje neutro (mismo criterio que en Concentradores).
+- Balanceo: un solo G para todo el rotor (eje + engomado); reparto de U_per en los apoyos por palanca respecto del centro de masa (verificar contra ISO 21940-11).
+- Velocidad crítica y peso propio: tubo + goma en todo L (sin muñones ni largo real del engomado).
 
 ## Soldaduras a tope tubo-muñón (hoja Soldadura)
 

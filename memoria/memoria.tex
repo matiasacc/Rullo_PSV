@@ -184,9 +184,26 @@ Fuera del compendio.
 \begin{itemize}\setlength\itemsep{1pt}
 \item Primera velocidad crítica de flexión (viga uniforme simplemente apoyada, sin masa del manchón):
 $n_c=\frac{30}{\pi}\left(\frac{\pi}{L}\right)^2\sqrt{EI/\mu}=\vnc$~rpm; $n/n_c=\vrnc$.
-\item Desbalanceo residual con grado $G=\vG$~mm/s (ISO 21940-11): $F_u=M\,G\,\omega=\vFu$~N,
+\item Desbalanceo residual con grado $G=\vG$~mm/s (ISO 21940-11, rotor rígido): $F_u=M\,G\,\omega=\vFu$~N,
 $F_u/F=\vrFu$. Gira con el eje, por lo que en el material produce tensión media, no alternante.
 \end{itemize}
+
+\noindent\textbf{Masa que gira y desbalance admisible.} El eje es el tubo entre soldaduras
+($L_{\text{tubo}}=\vLtubo$~mm) más los dos muñones hacia afuera; el engomado se cuenta aparte.
+\begin{center}
+\begin{tabular}{llr}
+\toprule
+Masa del eje & $M_{\text{eje}}=\rho\,(A\,L_{\text{tubo}}+A_{mI}L_{mI}+A_{mD}L_{mD})$ & \vMeje~kg \\
+Masa del engomado & $M_{\text{goma}}=\rho_g\,A_g\,L_g$ & \vMgoma~kg \\
+Masa que gira & $M=M_{\text{eje}}+M_{\text{goma}}$ & \vMrot~kg \\
+Centro de masa & $x_G=\sum m_i x_i/M$ & \vxG~mm \\
+Excentricidad admisible & $e_{per}=1000\,G/\omega$ & \veper~g·mm/kg \\
+Desbalance admisible & $U_{per}=e_{per}\,M$ & \vUper~g·mm \\
+Apoyo izquierdo\supu & $U_{per}\,(L-x_G)/L$ & \vUperI~g·mm \\
+Apoyo derecho\supu & $U_{per}\,x_G/L$ & \vUperD~g·mm \\
+\bottomrule
+\end{tabular}
+\end{center}
 
 % =================================================================
 \section{Supuestos y limitaciones}\label{sec:sup}
@@ -196,6 +213,8 @@ $F_u/F=\vrFu$. Gira con el eje, por lo que en el material produce tensión media
 \item[\supu] Mitad del peso del manchón sobre cada rullo.
 \item[\supu] Engomado: solo peso y diámetro de apoyo del manchón ($D+2e$); densidad típica de caucho si no se carga el dato real.
 \item[\supu] Torque constante, tomado por las correas de forma pareja en $B$.
+\item[\supu] Desbalance: un solo grado $G$ para todo el rotor (eje + engomado). Reparto de $U_{per}$ en los apoyos por palanca respecto del centro de masa: verificar contra ISO 21940-11.
+\item[\supu] La velocidad crítica y el peso propio toman tubo + goma en todo $L$, sin muñones ni el largo real del engomado.
 \item[\supu] $f_T$ con el diámetro exterior del tubo; $K_{fs}$ aplicado al corte transversal en el eje neutro.
 \item[\supu] Coeficientes de Neuber leídos del texto del compendio: verificar contra el impreso.
 \item[\supu] $K_f$ en fluencia: ec.~(3) frente a ec.~(77), pendiente de definir.
