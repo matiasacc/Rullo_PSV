@@ -45,6 +45,7 @@ Para regenerar la planilla desde cero (borra los datos cargados): `cd scripts &&
 4. **Resultados**: CS de fatiga y de fluencia, reacciones en rodamientos, flecha.
 5. **Tensores**: tensor medio, alternante y máximo en los puntos A (fibra extrema) y B (eje neutro).
 6. Si CS de fatiga < 1: vida limitada en ciclos y horas (hoja Concentradores).
+7. **Soldaduras** (en Datos): posición x de cada soldadura a tope tubo-muñón, Su y Sy del muñón, electrodo (lista) y sobremonta (con sobremonta / maquinada al ras). Resultado en la hoja **Soldadura** y en Resultados.
 
 ## Procedimiento de fatiga (compendio, sección 7.1)
 
@@ -67,10 +68,21 @@ Para regenerar la planilla desde cero (borra los datos cargados): `cd scripts &&
 - fT con el diámetro exterior del tubo.
 - Kf en la verificación a fluencia: selector en Datos (ec. 3 frente a ec. 77). Pendiente de definir.
 - Coeficientes de Neuber (10)-a/b leídos del texto extraído del PDF: verificar contra el impreso.
+- Soldadura maquinada al ras: Kf = 1 (el Shigley no da valor; el compendio, cap. 18, indica maquinar la sobremonta).
+- Soldadura: Kf aplicado al corte transversal en el eje neutro (mismo criterio que en Concentradores).
+
+## Soldaduras a tope tubo-muñón (hoja Soldadura)
+
+- Circunferencial, penetración completa: sección resistente = corona del tubo; garganta = espesor t, sin sobremonta (compendio cap. 18, ec. 1-2).
+- Tensiones: σ0 = M·c/I, τT = T·c/J, τV = V·Q/(I·b), con M, V, T del mismo modelo de viga en la posición x de cada soldadura.
+- Materiales: se toma el menor Su y Sy entre tubo, muñón y electrodo (compendio cap. 18). Electrodos: Shigley Tabla 9-3.
+- Con sobremonta: Kf = 1,2 (Shigley Tabla 9-5) y fS de forjado (Shigley sec. 9-7). Maquinada al ras: Kf = 1 (*) y fS de maquinado.
+- Fatiga con el mismo procedimiento del compendio (sección 7.1) que el resto de la planilla.
 
 ## Limitaciones
 
-- No cubre uniones soldadas ni atornilladas (muñones).
+- No cubre uniones atornilladas (muñones), soldaduras de filete ni a tope con penetración parcial.
+- Soldaduras: no incluye la flexión local por el cambio de rigidez ni las tensiones residuales (verificar con FEA).
 - Fatiga de ciclos altos (N > 10³); sin daño acumulado por arranques y paradas.
 - Kt solo para geometrías estándar del Anexo 2.
 - Los valores cargados en la planilla son un **ejemplo**, no son datos del rullo real.

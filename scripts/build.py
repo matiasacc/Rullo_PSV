@@ -80,6 +80,16 @@ inp("f1", "Otros factores f1 (temperatura, confiabilidad, etc.)", 1.0, "-", "Ec.
 inp("swfl", "¿Aplicar Kf en la verificación a fluencia? (1 = sí, 0 = no)", 1, "-",
     "* A DEFINIR entre ambos: ec. (3) dice que en dúctil estático no se usa Kt; ec. (77) toma σm+σa. 1 es lo conservativo")
 
+sec("Soldaduras a tope tubo-muñón (extremos del tubo)")
+inp("xsI", "Posición x de la soldadura izquierda", 100, "mm", "Desde el apoyo izquierdo (centro del rodamiento). Entre 0 y L")
+inp("xsD", "Posición x de la soldadura derecha", 1100, "mm", "Desde el apoyo izquierdo. Entre 0 y L")
+inp("SuM", "Muñón: resistencia a rotura Su", 630, "MPa", "Material del muñón (ejemplo: igual al tubo)")
+inp("SyM", "Muñón: tensión de fluencia Sy", 530, "MPa")
+inp("elec", "Electrodo (AWS)", "E70xx", "-", "Lista: Shigley Tabla 9-3 (tabla en hoja Fórmulas)")
+elec_row = r - 1
+inp("sobre", "Sobremonta del cordón", "Con sobremonta", "-", "Lista. Define Kf y fS de la soldadura (tabla en hoja Fórmulas)")
+sobre_row = r - 1
+
 sec("Secciones con concentrador de tensiones (hasta 3)")
 hdr = ["", "Sección 1", "Sección 2", "Sección 3"]
 ds.cell(r, 1, "Dato").font = fbold
@@ -163,6 +173,10 @@ der("rFu", "Relación F_u / F manchón", f"={N['Fu']}/{N['W']}", "-", fmt="0.000
 
 dv = DataValidation(type="list", formula1='"Rectificado,Maquinado o estirado en frío,Laminado en caliente,Forjado"', allow_blank=False)
 ds.add_data_validation(dv); dv.add(f"B{term_row}")
+dve = DataValidation(type="list", formula1="=Fórmulas!$F$5:$F$10", allow_blank=False)
+ds.add_data_validation(dve); dve.add(f"B{elec_row}")
+dvs = DataValidation(type="list", formula1='"Con sobremonta,Maquinada al ras"', allow_blank=False)
+ds.add_data_validation(dvs); dvs.add(f"B{sobre_row}")
 img = Image("dcl.png"); img.width, img.height = 620, 434
 ds.add_image(img, "G3")
 ds["G26"] = "Diagrama de cuerpo libre (modelo simplemente apoyado). x se mide desde el apoyo izquierdo."; ds["G26"].font = fsmall
@@ -332,6 +346,149 @@ for j, k in enumerate("BCD"):
         cc[g(lab)].number_format = "0.000"
     cc[g("x [mm]")].font = fgreen; cc[g("Activa")].font = fgreen
 
+# ------------------------------------------------------------------ SOLDADURA (a tope tubo-muñón)
+sw = wb.create_sheet("Soldadura")
+sw.column_dimensions["A"].width = 44
+for col in "BC": sw.column_dimensions[col].width = 14
+sw.column_dimensions["D"].width = 95
+sw["A1"] = "SOLDADURAS A TOPE TUBO-MUÑÓN (extremos del tubo)"; sw["A1"].font = fh
+sw["A2"] = ("Uso: 1) Datos > 'Soldaduras a tope tubo-muñón': posición x de cada soldadura, material del muñón, "
+            "electrodo y sobremonta.  2) Esta hoja calcula sola, no se edita.  3) Resumen en Resultados > Soldaduras."); sw["A2"].font = fsmall
+sw["A3"] = ("Hipótesis: soldadura circunferencial a tope con penetración completa: la sección resistente es la corona del tubo "
+            "(garganta = espesor t, sin sobremonta). Fuera de alcance: penetración parcial, filete, flexión local y tensiones "
+            "residuales (ver Fórmulas)."); sw["A3"].font = fsmall
+sw["A5"] = "Magnitud"; sw["B5"] = "Izquierda"; sw["C5"] = "Derecha"; sw["D5"] = "Ecuación / fuente"
+for col in "ABCD": sw[f"{col}5"].font = fbold; sw[f"{col}5"].fill = grey
+srows = [
+ ("x [mm]", "Dato (hoja Datos)"),
+ ("V [N]", "Equilibrio (DCL), mismo modelo que el resto de la planilla"),
+ ("M [N·mm]", "Equilibrio (DCL)"),
+ ("T [N·mm]", "* Distribución de T supuesta (ver Datos)"),
+ ("Garganta t = espesor del tubo [mm]", "Compendio cap. 18, ec. (1): t = espesor de las partes a unir; no incluye la sobremonta"),
+ ("I = π/64·(D⁴ - d⁴) [mm⁴]", "Penetración completa: la sección de la soldadura es la corona del tubo (hoja Datos)"),
+ ("J = 2I [mm⁴]", "Hoja Datos"),
+ ("σ0 = M·c/I [MPa]", "Compendio cap. 18, ec. (1) y Tabla 4 (σ = M/S); c = D/2"),
+ ("τT = T·c/J [MPa]", "Compendio cap. 18, ec. (2) y Tabla 4 (τ = T·c/J)"),
+ ("τV = V·Q/(I·b) [MPa]", "Corte transversal en el eje neutro, mismo criterio que la hoja Cálculo x"),
+ ("Su tubo [MPa]", "Hoja Datos"),
+ ("Su muñón [MPa]", "Hoja Datos"),
+ ("Su electrodo [MPa]", "Shigley 10ª ed., Tabla 9-3 (mínimos del metal de aporte); tabla en hoja Fórmulas"),
+ ("Su mínimo [MPa]", "Compendio cap. 18: verificar contra el material de aporte y los materiales base. Se toma el menor"),
+ ("Sy tubo [MPa]", "Hoja Datos"),
+ ("Sy muñón [MPa]", "Hoja Datos"),
+ ("Sy electrodo [MPa]", "Shigley 10ª ed., Tabla 9-3"),
+ ("Sy mínimo [MPa]", "Compendio cap. 18: se toma el menor"),
+ ("Kf soldadura", "Con sobremonta: 1,2 (Shigley Tabla 9-5, soldadura a tope reforzada). * Maquinada al ras: 1,0 (supuesto)"),
+ ("Terminación para fS", "Con sobremonta: Forjado (Shigley sec. 9-7). Maquinada al ras: Maquinado (tabla en hoja Fórmulas)"),
+ ("fS = a·(Su mín)^b", "Ec. (25)-(26), con Su mínimo"),
+ ("fT", "Ec. (21), igual que el tubo (* D exterior)"),
+ ("fC", "Ec. (24): fC = 1 con carga combinada"),
+ ("f1", "Ec. (20), dato en hoja Datos"),
+ ("Se' = mín(0,5·Su mín ; 690) [MPa]", "Ec. (17)"),
+ ("Se = fS·fT·fC·f1·Se' [MPa]", "Ec. (20)"),
+ ("A: σa = Kf·|σ0| [MPa]", "Tabla (14): Kf solo sobre la alterna (dúctil). Eje rotativo: flexión alternante, σm = 0"),
+ ("A: τm = τT [MPa]", "Tabla (14): media sin Kf (dúctil). * Torque constante: τa = 0"),
+ ("A: σ'a [MPa]", "Ec. (72)"),
+ ("A: σ'm [MPa]", "Ec. (72): σ'm = √3·τm"),
+ ("B: τa = Kf·τV [MPa]", "* Kf de la soldadura aplicado al corte transversal (mismo criterio conservativo que en Concentradores)"),
+ ("B: σ'a [MPa]", "Ec. (73)"),
+ ("B: σ'm [MPa]", "Ec. (73)"),
+ ("A: CS Goodman", "Ec. (44)-b, con Su mínimo"),
+ ("A: CS Soderberg", "Ec. (44)-a, con Sy mínimo"),
+ ("A: CS Gerber", "Ec. (44)-c, con Su mínimo"),
+ ("B: CS Goodman", "Ec. (44)-b"),
+ ("CS fatiga Goodman (mín A, B)", ""),
+ ("σ'máx A (fluencia) [MPa]", "Ec. (77): tensor medio + alternante, Von Mises. Kf según el selector de Datos"),
+ ("σ'máx B (fluencia) [MPa]", "Ec. (77)"),
+ ("CS fluencia = Sy mín / σ'máx", "Ec. (77)"),
+ ("Vida: a = (0,9·Su mín)²/Se [MPa]", "Ec. (31)"),
+ ("Vida: c = -1/b = 3/log(0,9·Su mín/Se)", "Ec. (31)"),
+ ("Vida: SN = σ'a/(1 - σ'm/Su mín) [MPa]", "Ec. (48)-b con CS = 1 (solo si CS Goodman < 1)"),
+ ("Vida N [ciclos]", "Ec. (32): N = (a/SN)^c. Válida si Se < SN ≤ 0,9·Su"),
+ ("Vida [horas]", "N / (n·60)"),
+]
+SR = {lab: 6 + i for i, (lab, note) in enumerate(srows)}
+for lab, note in srows:
+    sw.cell(SR[lab], 1, lab).font = fb; sw.cell(SR[lab], 4, note).font = fsmall
+FTAB = "Fórmulas!$A$5:$A$8"
+for k, xs in (("B", N["xsI"]), ("C", N["xsD"])):
+    g = lambda lab, k=k: f"{k}{SR[lab]}"
+    x = g("x [mm]")
+    sumin = g("Su mínimo [MPa]"); symin = g("Sy mínimo [MPa]"); se = g("Se = fS·fT·fC·f1·Se' [MPa]")
+    sAa, sAm = g("A: σ'a [MPa]"), g("A: σ'm [MPa]"); sBa, sBm = g("B: σ'a [MPa]"), g("B: σ'm [MPa]")
+    kf = g("Kf soldadura")
+    term = g("Terminación para fS")
+    F_ = {
+     "x [mm]": f"={xs}",
+     "V [N]": "=" + Vf(x),
+     "M [N·mm]": "=" + Mf(x),
+     "T [N·mm]": "=" + Tf(x),
+     "Garganta t = espesor del tubo [mm]": f"={N['t']}",
+     "I = π/64·(D⁴ - d⁴) [mm⁴]": f"={I}",
+     "J = 2I [mm⁴]": f"={J}",
+     "σ0 = M·c/I [MPa]": f"={g('M [N·mm]')}*{c_}/{g('I = π/64·(D⁴ - d⁴) [mm⁴]')}",
+     "τT = T·c/J [MPa]": f"={g('T [N·mm]')}*{c_}/{g('J = 2I [mm⁴]')}",
+     "τV = V·Q/(I·b) [MPa]": f"=ABS({g('V [N]')})*{Q}/({g('I = π/64·(D⁴ - d⁴) [mm⁴]')}*{bs})",
+     "Su tubo [MPa]": f"={N['Su']}",
+     "Su muñón [MPa]": f"={N['SuM']}",
+     "Su electrodo [MPa]": f"=INDEX(Fórmulas!$G$5:$G$10,MATCH({N['elec']},Fórmulas!$F$5:$F$10,0))",
+     "Su mínimo [MPa]": f"=MIN({g('Su tubo [MPa]')},{g('Su muñón [MPa]')},{g('Su electrodo [MPa]')})",
+     "Sy tubo [MPa]": f"={N['Sy']}",
+     "Sy muñón [MPa]": f"={N['SyM']}",
+     "Sy electrodo [MPa]": f"=INDEX(Fórmulas!$H$5:$H$10,MATCH({N['elec']},Fórmulas!$F$5:$F$10,0))",
+     "Sy mínimo [MPa]": f"=MIN({g('Sy tubo [MPa]')},{g('Sy muñón [MPa]')},{g('Sy electrodo [MPa]')})",
+     "Kf soldadura": f"=INDEX(Fórmulas!$G$15:$G$16,MATCH({N['sobre']},Fórmulas!$F$15:$F$16,0))",
+     "Terminación para fS": f"=INDEX(Fórmulas!$H$15:$H$16,MATCH({N['sobre']},Fórmulas!$F$15:$F$16,0))",
+     "fS = a·(Su mín)^b": (f"=INDEX(Fórmulas!$B$5:$B$8,MATCH({term},{FTAB},0))*{sumin}"
+                           f"^INDEX(Fórmulas!$C$5:$C$8,MATCH({term},{FTAB},0))"),
+     "fT": f"={N['fT']}",
+     "fC": 1,
+     "f1": f"={N['f1']}",
+     "Se' = mín(0,5·Su mín ; 690) [MPa]": f"=MIN(0.5*{sumin},690)",
+     "Se = fS·fT·fC·f1·Se' [MPa]": (f"={g('fS = a·(Su mín)^b')}*{g('fT')}*{g('fC')}*{g('f1')}"
+                                    f"*{g(chr(83)+'e'+chr(39)+' = mín(0,5·Su mín ; 690) [MPa]')}"),
+     "A: σa = Kf·|σ0| [MPa]": f"={kf}*ABS({g('σ0 = M·c/I [MPa]')})",
+     "A: τm = τT [MPa]": f"={g('τT = T·c/J [MPa]')}",
+     "A: σ'a [MPa]": f"={g('A: σa = Kf·|σ0| [MPa]')}",
+     "A: σ'm [MPa]": f"=SQRT(3)*ABS({g('A: τm = τT [MPa]')})",
+     "B: τa = Kf·τV [MPa]": f"={kf}*{g('τV = V·Q/(I·b) [MPa]')}",
+     "B: σ'a [MPa]": f"=SQRT(3)*{g('B: τa = Kf·τV [MPa]')}",
+     "B: σ'm [MPa]": f"=SQRT(3)*ABS({g('A: τm = τT [MPa]')})",
+     "A: CS Goodman": f"=IFERROR(1/({sAa}/{se}+{sAm}/{sumin}),9999)",
+     "A: CS Soderberg": f"=IFERROR(1/({sAa}/{se}+{sAm}/{symin}),9999)",
+     "A: CS Gerber": (f"=IFERROR(IF({sAm}=0,{se}/{sAa},(-({sAa}/{se})+SQRT(({sAa}/{se})^2+4*({sAm}/{sumin})^2))"
+                      f"/(2*({sAm}/{sumin})^2)),9999)"),
+     "B: CS Goodman": f"=IFERROR(1/({sBa}/{se}+{sBm}/{sumin}),9999)",
+     "CS fatiga Goodman (mín A, B)": f"=MIN({g('A: CS Goodman')},{g('B: CS Goodman')})",
+    }
+    kfl = f"IF({N['swfl']}=1,{kf},1)"
+    F_["σ'máx A (fluencia) [MPa]"] = f"=SQRT(({kfl}*{g('σ0 = M·c/I [MPa]')})^2+3*{g('τT = T·c/J [MPa]')}^2)"
+    F_["σ'máx B (fluencia) [MPa]"] = f"=SQRT(3)*({kfl}*{g('τV = V·Q/(I·b) [MPa]')}+ABS({g('τT = T·c/J [MPa]')}))"
+    F_["CS fluencia = Sy mín / σ'máx"] = (f"=IFERROR({symin}/MAX({g(chr(963)+chr(39)+'máx A (fluencia) [MPa]')},"
+                                          f"{g(chr(963)+chr(39)+'máx B (fluencia) [MPa]')}),9999)")
+    va = g("Vida: a = (0,9·Su mín)²/Se [MPa]"); vc = g("Vida: c = -1/b = 3/log(0,9·Su mín/Se)")
+    F_["Vida: a = (0,9·Su mín)²/Se [MPa]"] = f"=(0.9*{sumin})^2/{se}"
+    F_["Vida: c = -1/b = 3/log(0,9·Su mín/Se)"] = f"=3/LOG10(0.9*{sumin}/{se})"
+    sn_ = g("Vida: SN = σ'a/(1 - σ'm/Su mín) [MPa]")
+    F_["Vida: SN = σ'a/(1 - σ'm/Su mín) [MPa]"] = (f"=IF({g('CS fatiga Goodman (mín A, B)')}>=1,\"Vida infinita\","
+        f"IF({g('A: CS Goodman')}<={g('B: CS Goodman')},{sAa}/(1-{sAm}/{sumin}),{sBa}/(1-{sBm}/{sumin})))")
+    F_["Vida N [ciclos]"] = (f"=IF(ISNUMBER({sn_}),IF({sn_}>0.9*{sumin},\"< 10^3: fuera de rango\",({va}/{sn_})^{vc}),\"Vida infinita\")")
+    vn_ = g("Vida N [ciclos]")
+    F_["Vida [horas]"] = f"=IF(ISNUMBER({vn_}),{vn_}/({N['n']}*60),\"-\")"
+    for lab, fml in F_.items():
+        cell = sw[g(lab)]; cell.value = fml; cell.font = fb; cell.number_format = "0.00"
+    for lab in ("V [N]", "M [N·mm]", "T [N·mm]", "I = π/64·(D⁴ - d⁴) [mm⁴]", "J = 2I [mm⁴]", "Vida N [ciclos]"):
+        sw[g(lab)].number_format = "#,##0"
+    for lab in ("Su tubo [MPa]", "Su muñón [MPa]", "Su electrodo [MPa]", "Su mínimo [MPa]",
+                "Sy tubo [MPa]", "Sy muñón [MPa]", "Sy electrodo [MPa]", "Sy mínimo [MPa]", "x [mm]"):
+        sw[g(lab)].number_format = "0"
+    for lab in ("Kf soldadura", "fS = a·(Su mín)^b", "fT", "fC", "f1", "Vida: c = -1/b = 3/log(0,9·Su mín/Se)"):
+        sw[g(lab)].number_format = "0.000"
+    for lab in ("x [mm]", "Garganta t = espesor del tubo [mm]", "I = π/64·(D⁴ - d⁴) [mm⁴]", "J = 2I [mm⁴]",
+                "Su tubo [MPa]", "Su muñón [MPa]", "Sy tubo [MPa]", "Sy muñón [MPa]", "fT", "f1"):
+        sw[g(lab)].font = fgreen
+sw.freeze_panes = "B6"
+
 # ------------------------------------------------------------------ RESULTADOS
 rs = wb.create_sheet("Resultados", 1)
 rs.column_dimensions["A"].width = 50; rs.column_dimensions["B"].width = 18
@@ -390,10 +547,19 @@ for j, k in enumerate("BCD"):
           f"=IF(Concentradores!{k}{R['Activa']}=1,Concentradores!{k}{R['CS fluencia']},\"inactiva\")", "-")
     rline(f"v{j}", f"Sección {j+1}: vida",
           f"=IF(Concentradores!{k}{R['Activa']}=1,Concentradores!{k}{R['Vida N [ciclos]']},\"inactiva\")", "ciclos", fmt="#,##0")
+rsec("Soldaduras a tope tubo-muñón (hoja Soldadura)")
+for k, lado in (("B", "izquierda"), ("C", "derecha")):
+    rline(f"sx{k}", f"Soldadura {lado}: posición x", f"=Soldadura!{k}{SR['x [mm]']}", "mm", fmt="0.0")
+    rline(f"scs{k}", f"Soldadura {lado}: CS fatiga Goodman", f"=Soldadura!{k}{SR['CS fatiga Goodman (mín A, B)']}", "-",
+          "Ec. (44)-b con Su mínimo (tubo, muñón, electrodo) y Kf de la soldadura")
+    rline(f"sfl{k}", f"Soldadura {lado}: CS fluencia", f"=Soldadura!{k}{SR[chr(67)+'S fluencia = Sy mín / '+chr(963)+chr(39)+'máx']}", "-",
+          "Ec. (77) con Sy mínimo")
+    rline(f"sv{k}", f"Soldadura {lado}: vida", f"=Soldadura!{k}{SR['Vida N [ciclos]']}", "ciclos", fmt="#,##0")
 rsec("Gobierna")
-rline("csg", "CS fatiga mínimo (cuerpo y concentradores)",
-      f"=MIN({RS['csb']},{RS['cs0']},{RS['cs1']},{RS['cs2']})", "-", "* Si CS < 1: vida limitada, ver hoja Concentradores / Tensores")
-rline("flg", "CS fluencia mínimo", f"=MIN({RS['flb']},{RS['fl0']},{RS['fl1']},{RS['fl2']})", "-")
+rline("csg", "CS fatiga mínimo (cuerpo, concentradores y soldaduras)",
+      f"=MIN({RS['csb']},{RS['cs0']},{RS['cs1']},{RS['cs2']},{RS['scsB']},{RS['scsC']})", "-",
+      "* Si CS < 1: vida limitada, ver hojas Concentradores / Tensores / Soldadura")
+rline("flg", "CS fluencia mínimo", f"=MIN({RS['flb']},{RS['fl0']},{RS['fl1']},{RS['fl2']},{RS['sflB']},{RS['sflC']})", "-")
 def srev(sa, sm): return f"{sa}/(1-{sm}/{Su})"
 cands = [srev("Tensores!$G$11", "Tensores!$C$11"), srev("Tensores!$S$11", "Tensores!$C$11")]
 for k in "BCD":
@@ -401,7 +567,7 @@ for k in "BCD":
     cands.append(f"{on}*" + srev(f"Concentradores!{k}{R[chr(65)+': σ'+chr(39)+'a [MPa]']}", f"Concentradores!{k}{R[chr(65)+': σ'+chr(39)+'m [MPa]']}"))
     cands.append(f"{on}*" + srev(f"Concentradores!{k}{R['B: σ'+chr(39)+'a [MPa]']}", f"Concentradores!{k}{R['B: σ'+chr(39)+'m [MPa]']}"))
 rline("srev", "Tensión alternante equivalente máxima (σm = 0)", "=MAX(" + ",".join(cands) + ")", "MPa",
-      "σa/(1 - σ'm/Su), ec. (48)-b. Es la que se ubica en el diagrama S-N")
+      "σa/(1 - σ'm/Su), ec. (48)-b. Es la que se ubica en el diagrama S-N. No incluye las soldaduras (tienen otro Se)")
 rs[RS['csg']].font = fbold; rs[RS['flg']].font = fbold
 rr += 1
 rs.cell(rr, 1, "Los valores cargados son un ejemplo. CS: coeficiente de seguridad (notación del compendio).").font = fsmall
@@ -518,6 +684,25 @@ for i, (t_, aa, bb) in enumerate([("Rectificado", 1.58, -0.085), ("Maquinado o e
     fs.cell(5 + i, 1, t_).font = fb
     fs.cell(5 + i, 2, aa).font = fin; fs.cell(5 + i, 3, bb).font = fin
 
+for col, wdt in (("E", 3), ("F", 18), ("G", 12), ("H", 30)):
+    fs.column_dimensions[col].width = wdt
+fs["F3"] = "Electrodos: metal de aporte, valores mínimos"; fs["F3"].font = fbold
+for j, h in enumerate(["Electrodo AWS", "Su [MPa]", "Sy [MPa]"]):
+    fs.cell(4, 6 + j, h).font = fbold
+for i, (e_, su_, sy_) in enumerate([("E60xx", 427, 345), ("E70xx", 482, 393), ("E80xx", 551, 462),
+                                     ("E90xx", 620, 531), ("E100xx", 689, 600), ("E120xx", 827, 737)]):
+    fs.cell(5 + i, 6, e_).font = fb
+    fs.cell(5 + i, 7, su_).font = fin; fs.cell(5 + i, 8, sy_).font = fin
+fs["F11"] = "Fuente: Shigley 10ª ed., Tabla 9-3 (el compendio, cap. 18 Anexo 2, cita la misma fuente)"; fs["F11"].font = fsmall
+fs["F13"] = "Soldadura a tope: Kf y terminación para fS"; fs["F13"].font = fbold
+for j, h in enumerate(["Sobremonta", "Kf", "Terminación para fS"]):
+    fs.cell(14, 6 + j, h).font = fbold
+for i, (s_, k_, t_) in enumerate([("Con sobremonta", 1.2, "Forjado"), ("Maquinada al ras", 1.0, "Maquinado o estirado en frío")]):
+    fs.cell(15 + i, 6, s_).font = fb
+    fs.cell(15 + i, 7, k_).font = fin; fs.cell(15 + i, 8, t_).font = fin
+fs["F17"] = "Kf 1,2: Shigley Tabla 9-5 (soldadura a tope reforzada). Forjado: Shigley sec. 9-7"; fs["F17"].font = fsmall
+fs["F18"] = "* Maquinada al ras: Kf = 1 es supuesto (el Shigley no da valor; el compendio cap. 18 indica maquinar la sobremonta)"; fs["F18"].font = fsmall
+
 lines = [
 ("ESQUEMA DE USO", ""),
 ("1. Datos", "Cargar en la hoja Datos: geometría (D, t, L), manchón (cantidad, ancho, masa, desarrollo, frecuencia, inicio a), pesos (z), torque (P, n, lado), material (Su, Sy, E, ρ), terminación y f1."),
@@ -526,6 +711,7 @@ lines = [
 ("4. Resultados", "Hoja Resultados: CS de fatiga y de fluencia del cuerpo y de cada sección, y flecha máxima."),
 ("5. Tensores", "Hoja Tensores: tensor medio, alternante y máximo en los puntos A y B de cada sección."),
 ("6. Vida", "Si algún CS de fatiga es < 1: vida limitada en ciclos y horas (hoja Concentradores)."),
+("7. Soldaduras", "Datos > 'Soldaduras a tope tubo-muñón': posición x de cada soldadura, Su y Sy del muñón, electrodo y sobremonta. Resultado en hoja Soldadura y en Resultados."),
 ("", ""),
 ("HIPÓTESIS", ""),
 ("Modelo de viga", "Simplemente apoyada en los centros de los rodamientos (los rodamientos permiten el giro de la sección)."),
@@ -544,6 +730,10 @@ lines = [
 ("Kfs sobre τV *", "Se aplicó Kfs al corte transversal en el punto B (conservativo; el compendio no lo trata explícitamente)."),
 ("fT *", "Ec. (21) para ejes rotativos usando D exterior del tubo."),
 ("Kf en fluencia *", "A definir: switch en Datos. Ec. (3): en dúctil estático no se usa Kt. 1 = se aplica (conservativo)."),
+("Soldadura a tope", "Circunferencial, penetración completa: la sección resistente es la corona del tubo (compendio cap. 18, ec. (1): garganta = espesor de las partes, sin sobremonta)."),
+("Soldadura: materiales", "Se compara con el menor Su y Sy entre tubo, muñón y electrodo (compendio cap. 18: verificar aporte y materiales base)."),
+("Soldadura: Kf y fS", "Con sobremonta: Kf = 1,2 (Shigley Tabla 9-5) y fS de forjado (Shigley sec. 9-7). Maquinada al ras: Kf = 1 * (supuesto) y fS de maquinado."),
+("Soldadura: fatiga", "Mismo procedimiento que el tubo (sección 7.1 del compendio): Kf solo en la alterna (Tabla 14), Von Mises (72), Goodman (44)-b."),
 ("", ""),
 ("ECUACIONES (compendio, cap. 14)", ""),
 ("Equilibrio (por plano)", "R1 = W·(b + B/2)/L + w·L/2 ; R2 = W·(a + B/2)/L + w·L/2 ; W = q·B ; b = L - a - B (w solo en z)"),
@@ -570,7 +760,8 @@ lines = [
 ("", ""),
 ("LIMITACIONES", ""),
 ("", "El procedimiento 7.1 supone que todas las cargas varían con la misma ley en el tiempo; si no es así, el resultado queda del lado de la seguridad."),
-("", "Kt de tablas solo para geometrías estándar (Anexo 2). Las uniones soldadas no están cubiertas por esta planilla."),
+("", "Kt de tablas solo para geometrías estándar (Anexo 2)."),
+("", "Soldaduras: solo a tope tubo-muñón con penetración completa. No cubre penetración parcial (raíz sin fundir), filete, flexión local por cambio de rigidez ni tensiones residuales (FEA: PrePoMax)."),
 ("", "Fatiga de ciclos altos (N > 10³). Los arranques y paradas no se consideran (daño acumulado: sección 9 del compendio)."),
 ]
 rr = 11
@@ -600,6 +791,13 @@ for ln, k in dmap:
 for ln, k in [("vsrev","srev"),("vMmax","Mmax"),("vxM","xM"),("vsmax","smax"),("vfl","fl"),("vxfl","xfl"),("vcsb","csb"),("vxcsb","xcsb"),
               ("vflb","flb"),("vcsg","csg"),("vflg","flg")]:
     nm(ln, f"Resultados!${RS[k][0]}${RS[k][1:]}")
+for ln, k in [("vxsI","xsI"),("vxsD","xsD"),("vSuM","SuM"),("vSyM","SyM"),("velec","elec"),("vsobre","sobre")]:
+    nm(ln, N[k])
+for k, lado in (("B", "izq"), ("C", "der")):
+    for ln, lab in [("sKf", "Kf soldadura"), ("sSe", "Se = fS·fT·fC·f1·Se' [MPa]"), ("ssa", "A: σ'a [MPa]"),
+                    ("ssm", "A: σ'm [MPa]"), ("scs", "CS fatiga Goodman (mín A, B)"),
+                    ("sfl", "CS fluencia = Sy mín / σ'máx"), ("svida", "Vida N [ciclos]")]:
+        nm(f"v{ln}{lado}", f"Soldadura!${k}${SR[lab]}")
 for ln, cell in [("vtxcrit","E4"),("vttaum","C8"),("vtsiga","E8"),("vtvma","G11"),("vtvmm","C11"),("vtvmmax","K11"),
                  ("vttauaB","S8"),("vtvmaB","S11")]:
     nm(ln, f"Tensores!${cell[0]}${cell[1:]}")
