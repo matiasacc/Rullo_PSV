@@ -14,7 +14,7 @@ raiz = Path(__file__).resolve().parent.parent
 xlsx = Path(sys.argv[1]) if len(sys.argv) > 1 else raiz / "planilla" / "Rullo_PSV_estatico_fatiga.xlsx"
 wb = load_workbook(xlsx, data_only=True)
 
-CRUDOS = {"vpp", "vpm", "vub", "vlado", "vswfl", "vkonuno", "vkondos", "vkontres"}  # enteros para \ifnum
+CRUDOS = {"vpp", "vpm", "vub", "vswp", "vlado", "vswfl", "vkonuno", "vkondos", "vkontres"}  # enteros para \ifnum
 
 def esc(t):
     for a, b in (("\\", r"\textbackslash{}"), ("&", r"\&"), ("%", r"\%"), ("#", r"\#"), ("_", r"\_"), ("^", r"\^{}")):
@@ -79,7 +79,7 @@ from matplotlib.patches import Rectangle, Polygon, FancyArrowPatch
 def val(n):
     hoja, ref = next(iter(wb.defined_names[n].destinations))
     return wb[hoja][ref.replace("$", "")].value
-g = {k: val(k) for k in ("vL", "vxsI", "vxsD", "vxgcero", "vLg", "vainicio", "vB", "vD", "vDextmI", "vDextmD", "veg", "vlado", "vLmI", "vLmD")}
+g = {k: val(k) for k in ("vL", "vxsI", "vxsD", "vxgcero", "vLg", "vainicio", "vB", "vD", "vDextmI", "vDextmD", "veg", "vlado", "vLmI", "vLmD", "vswp", "vcp", "vDp")}
 cx = wb["Cálculo x"]
 col = lambda c: [cx[f"{c}{r}"].value for r in range(4, 205)]
 x, My, Mz, M, fl, cs = col("A"), col("E"), col("F"), col("G"), col("AC"), col("R")
@@ -114,10 +114,17 @@ else:
         h = (hm_I if xa == 0 else hm_D)
         ax.add_patch(Polygon([[xa, -h], [xa - L * 0.02, -h - D * 0.25], [xa + L * 0.02, -h - D * 0.25]], closed=True, fc="w", ec="k", lw=0.8))
     ax.text(0, -hm_I - D * 0.42, "apoyo izq.", ha="center", fontsize=8); ax.text(L, -hm_D - D * 0.42, "apoyo der.", ha="center", fontsize=8)
-    lado_txt = "motor" if True else ""
-    xm = L + min(g["vLmD"] - (L - xsD), ext) if g["vlado"] == 0 else -min(g["vLmI"] - xsI, ext)
-    ax.annotate("T (motor)", xy=(xm, 0), xytext=(xm + (1 if g["vlado"] == 0 else -1) * L * 0.08, D * 0.45),
-                ha="center", fontsize=8, arrowprops=dict(arrowstyle="->", lw=0.8))
+    if g["vswp"] == 1:
+        xp_, rp = L + g["vcp"], g["vDp"] / 2
+        ax.add_patch(Rectangle((xp_ - L * 0.012, -rp), L * 0.024, 2 * rp, fc="w", ec="k", lw=0.8))
+        ax.text(xp_, rp + D * 0.06, "polea", ha="center", fontsize=8)
+        ax.annotate("", xy=(xp_ - L * 0.06, -rp * 0.2), xytext=(xp_ - L * 0.06, rp * 0.2),
+                    arrowprops=dict(arrowstyle="<-", lw=0.6))
+        ext = max(ext, g["vcp"] + L * 0.04)
+    else:
+        xm = L + min(g["vLmD"] - (L - xsD), ext)
+        ax.annotate("T (acople)", xy=(xm, 0), xytext=(xm + L * 0.08, D * 0.45), ha="center", fontsize=8,
+                    arrowprops=dict(arrowstyle="->", lw=0.8))
     for xv, t in ((xsI, "sold."), (xsD, "sold.")):
         ax.text(xv, -D / 2 - eg - D * 0.12, t, ha="center", fontsize=7, color="0.3")
     ax.annotate("", xy=(L, -D * 1.05), xytext=(0, -D * 1.05), arrowprops=dict(arrowstyle="<->", lw=0.6))

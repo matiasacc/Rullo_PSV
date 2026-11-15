@@ -88,6 +88,19 @@ Velocidad $n$ & \vn & rpm & & & \\
 \end{tabular}
 \end{center}
 
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+ & Tramo $x$ [mm] & Diámetro [mm] & Material $S_u$/$S_y$ [MPa] & Terminación \\
+\midrule
+Muñón izquierdo\supu & 0 -- \vxsI & \vDextmI\ / \vDintmI & \vSuMI\ / \vSyMI & \vtermMI \\
+Tubo & \vxsI\ -- \vxsD & \vD\ (e = \vt) & \vSu\ / \vSy & \vterm \\
+Muñón derecho\supu & \vxsD\ -- \vL & \vDextmD\ / \vDintmD & \vSuMD\ / \vSyMD & \vtermMD \\
+\bottomrule
+\end{tabular}
+\end{center}
+Muñones como cilindro recto con el diámetro menor de sus escalones (exterior / interior; 0 = macizo).
+
 Propiedades de la sección del tubo (la goma no aporta rigidez\supu; en los muñones se usa su propia sección): $d=\vdint$~mm, $A=\vArea$~mm$^2$, $I=\vI$~mm$^4$, $J=\vJ$~mm$^4$.
 
 % =================================================================
@@ -106,6 +119,10 @@ a $x_{\text{tope}}$ ($b=\vbfin$~mm).
 \textbf{Gravedad (plano $z$).} Cada peso en su tramo: muñones \vwmI\ y \vwmD~N/mm, tubo $w=\vw$~N/mm,
 engomado \vwg~N/mm (de $x=\vxgcero$~mm en un largo de \vLg~mm) y mitad del peso del manchón\supu\
 $q_z=\vqz$~N/mm en $B$. La punta de los muñones fuera de los apoyos no se considera\supu.
+
+\textbf{Transmisión en el muñón derecho\supu.} \ifnum\vswp=1 Polea o piñón de $D_p=\vDp$~mm a $c=\vcp$~mm del
+centro del rodamiento derecho: $F=K\cdot 2T/D_p=\vFp$~N ($K=\vKp$, dirección $\theta=\vthp^\circ$ desde $+y$).
+Produce un momento $F\cdot c=\vMp$~N$\cdot$mm sobre el apoyo derecho.\else Acople directo: sin carga radial.\fi
 
 \textbf{Torque.} $T=P/\omega=\vTcero$~N$\cdot$mm, constante; entra por un extremo y lo toman las
 correas de forma pareja en $B$\supu.
@@ -179,6 +196,19 @@ Sección & $x$ [mm] & $K_t$ & $K_{ts}$ & $r$ [mm] & $K_f$ & $\sigma'_a$ & $\sigm
 \end{center}
 Kf en la verificación a fluencia: \ifnum\vswfl=1 aplicado\else no aplicado\fi\supu.
 
+\textbf{Soldaduras a tope tubo--muñón} (hoja Soldadura). Sección resistente: corona del tubo con espesor
+igual a la garganta\supu; $S_u$ mínimo entre tubo, muñón y electrodo (\velec); $K_f$ según sobremonta (\vsobre).
+\begin{center}
+\begin{tabular}{lccccccc}
+\toprule
+Soldadura & $x$ [mm] & Garganta [mm] & $K_f$ & $S_u$ mín [MPa] & $S_e$ [MPa] & $CS_{\text{fat}}$ & $CS_{\text{fl}}$ \\
+\midrule
+Izquierda & \vsxizq & \vsgizq & \vskfizq & \vssuizq & \vsseizq & \vscsizq & \vsflizq \\
+Derecha   & \vsxder & \vsgder & \vskfder & \vssuder & \vsseder & \vscsder & \vsflder \\
+\bottomrule
+\end{tabular}
+\end{center}
+
 % =================================================================
 \section{Resultados}
 \begin{center}
@@ -227,6 +257,9 @@ Apoyo derecho\supu & $U_{per}\,x_G/L$ & \vUperD~g·mm \\
 \item[\supu] Tensión por correa $T=4\,m\,L_t^2\,f^2$ (cuerda vibrante): no figura en el compendio.
 \item[\supu] $L_t=(\text{desarrollo}-\pi D)/2$ si no se mide: ramales paralelos y rullos de igual diámetro.
 \item[\supu] Mitad del peso del manchón sobre cada rullo.
+\item[\supu] Muñones como cilindro recto con el diámetro menor de sus escalones.
+\item[\supu] Transmisión: $F=K\cdot 2T/D_p$; $K$ según el tipo de transmisión, a validar.
+\item[\supu] Garganta menor que el espesor: anillo exterior de ese espesor.
 \item[\supu] Desbalanceo uniforme a lo largo de $L$.
 \item[\supu] Engomado: solo peso y diámetro de apoyo del manchón ($D+2e$); densidad típica de caucho si no se carga el dato real.
 \item[\supu] Torque constante, tomado por las correas de forma pareja en $B$.

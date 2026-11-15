@@ -56,7 +56,7 @@ inp("Lp", "Desarrollo de la correa", 1200, "mm")
 inp("fr", "Frecuencia medida (por correa)", 40, "Hz", "Ramal libre vibrando")
 inp("Ltin", "Largo libre del ramal Lt (0 = calcular)", 0, "mm",
     "* Si es 0: Lt = (desarrollo - π·D)/2, ramales paralelos y rullos de igual diámetro (línea primitiva ≈ D exterior)")
-inp("xtope", "Tope del manchón, lado derecho (motriz): x (0 = fin del engomado)", 0, "mm",
+inp("xtope", "Tope del manchón, lado derecho (motriz): x (0 = soldadura derecha)", 0, "mm",
     "Las correas entran desde la izquierda y hacen tope a la derecha: el manchón va de x_tope - B a x_tope")
 sec("Plano z (gravedad)")
 inp("pp", "Incluir peso propio (tubo, muñones y engomado) (1 = sí, 0 = no)", 1, "-", "Cada peso repartido en su propio tramo")
@@ -71,13 +71,28 @@ sec("Balanceo (fuera del compendio)")
 inp("ub", "Incluir desbalanceo por rotación en las tensiones (1 = sí, 0 = no)", 1, "-", "Se suma como tensión media (gira con el eje)")
 inp("G", "Grado de calidad de balanceo G (ISO 21940-11)", 6.3, "mm/s", "* Desbalanceo residual admisible: e·ω = G")
 inp("eu", "Excentricidad de masa medida e (0 = usar e_per de G)", 0, "mm", "Para cargar una excentricidad medida (goma ovalizada, tubo descentrado)")
-sec("Masa que gira: eje (acero, densidad ρ de Material)")
-inp("DmI", "Muñón izquierdo: diámetro exterior", 60, "mm", "Tubo: entre las soldaduras (D, t). Muñón: desde la soldadura hacia afuera")
+sec("Muñón izquierdo (apoyo libre)")
+inp("DmI", "Muñón izquierdo: diámetro (el menor de los escalones)", 60, "mm", "* Se modela como cilindro recto con el diámetro menor (conservativo)")
 inp("dmI", "Muñón izquierdo: diámetro interior (0 = macizo)", 0, "mm")
 inp("LmI", "Muñón izquierdo: largo total", 150, "mm", "Desde la soldadura izquierda hasta el extremo (incluye lo que queda fuera del apoyo)")
-inp("DmD", "Muñón derecho: diámetro exterior", 60, "mm")
+inp("SuMIin", "Muñón izquierdo: Su (0 = igual al tubo)", 0, "MPa")
+inp("SyMIin", "Muñón izquierdo: Sy (0 = igual al tubo)", 0, "MPa")
+inp("termMI", "Muñón izquierdo: terminación superficial", "Maquinado o estirado en frío", "-", "Lista: ec. (26)")
+termMI_row = r - 1
+sec("Muñón derecho (motriz)")
+inp("DmD", "Muñón derecho: diámetro (el menor de los escalones)", 60, "mm", "* Cilindro recto con el diámetro menor")
 inp("dmD", "Muñón derecho: diámetro interior (0 = macizo)", 0, "mm")
 inp("LmD", "Muñón derecho: largo total", 150, "mm", "Desde la soldadura derecha hasta el extremo")
+inp("SuMDin", "Muñón derecho: Su (0 = igual al tubo)", 0, "MPa")
+inp("SyMDin", "Muñón derecho: Sy (0 = igual al tubo)", 0, "MPa")
+inp("termMD", "Muñón derecho: terminación superficial", "Maquinado o estirado en frío", "-", "Lista: ec. (26)")
+termMD_row = r - 1
+sec("Transmisión en el muñón derecho (polea / correa / cadena)")
+inp("swp", "Carga radial de la transmisión (1 = polea o cadena, 0 = acople directo)", 1, "-", "Con acople directo no hay carga radial")
+inp("Dp", "Diámetro primitivo de la polea / piñón Dp", 200, "mm", "EJEMPLO: reemplazar por el dato real")
+inp("cp", "Distancia del centro del rodamiento derecho a la polea", 80, "mm", "Voladizo hacia afuera (x = L + c). EJEMPLO")
+inp("Kp", "Factor de tiro K: F = K·2T/Dp", 1.5, "-", "* Correa en V ≈ 1,5; cadena ≈ 1. A validar con el tipo de transmisión real")
+inp("thp", "Dirección del tiro θ (0° = +y, 90° = +z)", 0, "°", "Ángulo en el plano y-z medido desde +y hacia +z")
 sec("Masa que gira: engomado (espesor y densidad en Engomado)")
 inp("xg0in", "Inicio del engomado, desde el apoyo izquierdo (0 = soldadura izq.)", 0, "mm", "Por defecto el engomado cubre todo el tubo")
 inp("Lgin", "Largo del engomado (0 = largo del tubo)", 0, "mm", "Debe quedar sobre el tubo")
@@ -96,10 +111,8 @@ inp("swfl", "¿Aplicar Kf en la verificación a fluencia? (1 = sí, 0 = no)", 1,
 sec("Soldaduras a tope tubo-muñón (extremos del tubo)")
 inp("xsI", "Posición x de la soldadura izquierda", 100, "mm", "Desde el apoyo izquierdo (centro del rodamiento). Entre 0 y L")
 inp("xsD", "Posición x de la soldadura derecha", 1100, "mm", "Desde el apoyo izquierdo. Entre 0 y L")
-inp("SuM", "Muñón: resistencia a rotura Su", 630, "MPa", "Material del muñón (ejemplo: igual al tubo)")
-inp("SyM", "Muñón: tensión de fluencia Sy", 530, "MPa")
-inp("termM", "Muñones: terminación superficial", "Maquinado o estirado en frío", "-", "Lista: ec. (26). Se usa en las zonas de muñón")
-termM_row = r - 1
+inp("gar", "Garganta de la soldadura (0 = espesor del tubo t)", 0, "mm",
+    "* Penetración parcial: anillo exterior de espesor = garganta (D a D - 2·garganta)")
 inp("elec", "Electrodo (AWS)", "E70xx", "-", "Lista: Shigley Tabla 9-3 (tabla en hoja Fórmulas)")
 elec_row = r - 1
 inp("sobre", "Sobremonta del cordón", "Con sobremonta", "-", "Lista. Define Kf y fS de la soldadura (tabla en hoja Fórmulas)")
@@ -142,8 +155,8 @@ der("Ltu", "Largo del tubo L_tubo = x sold. der. - x sold. izq.", f"={N['xsD']}-
 der("xg0", "Inicio del engomado x_g0", f"=IF({N['xg0in']}>0,{N['xg0in']},{N['xsI']})", "mm", fmt="0.0")
 der("Lg", "Largo del engomado L_g", f"=IF({N['Lgin']}>0,{N['Lgin']},{N['Ltu']})", "mm", fmt="0.0")
 der("cl", "Ancho del manchón B = cantidad × ancho", f"={N['nb']}*{N['bw']}", "mm", fmt="0.0")
-der("xtp", "Tope efectivo del manchón x_tope", f"=IF({N['xtope']}>0,{N['xtope']},{N['xg0']}+{N['Lg']})", "mm",
-    "Si no se carga: fin del engomado", fmt="0.0")
+der("xtp", "Tope efectivo del manchón x_tope", f"=IF({N['xtope']}>0,{N['xtope']},{N['xsD']})", "mm",
+    "Si no se carga: soldadura derecha (fin del tubo, empieza el muñón derecho)", fmt="0.0")
 der("a", "Inicio del manchón a = x_tope - B", f"={N['xtp']}-{N['cl']}", "mm", "Debe ser ≥ 0 y quedar sobre el engomado", fmt="0.0")
 der("b", "Distancia del fin del manchón al apoyo derecho b = L - a - B", f"={N['L']}-{N['a']}-{N['cl']}", "mm",
     "Debe ser ≥ 0 (si da negativo el manchón no entra entre apoyos)", fmt="0.0")
@@ -157,8 +170,6 @@ der("qy", "Carga distribuida qy = F/B", f"={N['W']}/{N['cl']}", "N/mm", fmt="0.0
 der("Wz", "Peso del manchón sobre el rullo (plano z)", f"={N['pm']}*{N['nb']}*{N['mb']}*9.81/2", "N", fmt="0.0")
 der("qz", "Carga distribuida qz = peso manchón/B", f"={N['Wz']}/{N['cl']}", "N/mm", fmt="0.0000")
 der("T0", "Torque T = P/ω", f"={N['P']}*1000/(2*PI()*{N['n']}/60)*1000", "N·mm", fmt="#,##0")
-der("R1y", "Reacción R1y (plano y)", f"={N['W']}*({N['b']}+{N['cl']}/2)/{N['L']}", "N", "Equilibrio de momentos respecto de R2", fmt="#,##0")
-der("R2y", "Reacción R2y (plano y)", f"={N['W']}*({N['a']}+{N['cl']}/2)/{N['L']}", "N", fmt="#,##0")
 der("fS_a", "Factor de superficie: a", f"=INDEX(Fórmulas!$B$5:$B$8,MATCH({N['term']},Fórmulas!$A$5:$A$8,0))", "-", "Ec. (26), unidades MPa")
 der("fS_b", "Factor de superficie: b", f"=INDEX(Fórmulas!$C$5:$C$8,MATCH({N['term']},Fórmulas!$A$5:$A$8,0))", "-")
 der("fS", "fS = a·Su^b", f"={N['fS_a']}*{N['Su']}^{N['fS_b']}", "-", "Ec. (25)")
@@ -179,6 +190,11 @@ der("mu", "Masa por unidad de largo tubo + goma (para n_c)", f"=({N['rho']}*{N['
     "* n_c y peso propio w toman tubo + goma en todo L (sin muñones)", fmt="0.00")
 der("AmI", "Muñón izquierdo: área π/4·(Dm² - dm²)", f"=PI()/4*({N['DmI']}^2-{N['dmI']}^2)", "mm²", fmt="0.0")
 der("AmD", "Muñón derecho: área π/4·(Dm² - dm²)", f"=PI()/4*({N['DmD']}^2-{N['dmD']}^2)", "mm²", fmt="0.0")
+der("Fp", "Transmisión: fuerza radial F = K·2T/Dp", f"={N['swp']}*{N['Kp']}*2*{N['T0']}/{N['Dp']}", "N", "* Ver factor K", fmt="#,##0")
+der("Fpy", "Transmisión: componente y = F·cos θ", f"={N['Fp']}*COS(RADIANS({N['thp']}))", "N", fmt="#,##0")
+der("Fpz", "Transmisión: componente z = F·sen θ", f"={N['Fp']}*SIN(RADIANS({N['thp']}))", "N", fmt="#,##0")
+der("xp", "Transmisión: posición x = L + c", f"={N['L']}+{N['cp']}", "mm", fmt="0.0")
+der("Mp", "Momento en el rodamiento derecho por la transmisión M = F·c", f"={N['Fp']}*{N['cp']}", "N·mm", "Máximo en el muñón derecho, sobre el apoyo", fmt="#,##0")
 # pesos por tramo (plano z)
 der("wmI", "Peso muñón izquierdo ρ·g·A_mI (tramo 0 → x sold. izq.)", f"={N['pp']}*{N['rho']}*9.81*{N['AmI']}", "N/mm", fmt="0.0000")
 der("w", "Peso tubo ρ·g·A (tramo entre soldaduras)", f"={N['pp']}*{N['rho']}*9.81*{N['A']}", "N/mm", fmt="0.0000")
@@ -188,14 +204,17 @@ der("wg", "Peso engomado ρg·g·Ag (tramo del engomado)", f"={N['pp']}*{N['rhog
 ZSEG = [(N['wmI'], "0", N['xsI']), (N['w'], N['xsI'], N['xsD']), (N['wmD'], N['xsD'], N['L']),
         (N['wg'], N['xg0'], f"({N['xg0']}+{N['Lg']})"), (N['qz'], N['a'], f"({N['a']}+{N['cl']})")]
 Lr = N['L']
-der("R1z", "Reacción R1z (plano z) = Σ q·(e-s)·(L - (s+e)/2)/L",
-    "=" + "+".join(f"{q_}*({e_}-{s_})*({Lr}-({s_}+{e_})/2)/{Lr}" for q_, s_, e_ in ZSEG), "N", "Suma de los tramos cargados", fmt="#,##0")
+der("R1y", "Reacción R1y (plano y) = manchón + transmisión", f"={N['W']}*({N['b']}+{N['cl']}/2)/{N['L']}+{N['Fpy']}*({N['L']}-{N['xp']})/{N['L']}", "N",
+    "Equilibrio de momentos respecto de R2 (la polea en voladizo descarga R1)", fmt="#,##0")
+der("R2y", "Reacción R2y (plano y)", f"={N['W']}*({N['a']}+{N['cl']}/2)/{N['L']}+{N['Fpy']}*{N['xp']}/{N['L']}", "N", fmt="#,##0")
+der("R1z", "Reacción R1z (plano z) = Σ q·(e-s)·(L - (s+e)/2)/L + transmisión",
+    "=" + "+".join(f"{q_}*({e_}-{s_})*({Lr}-({s_}+{e_})/2)/{Lr}" for q_, s_, e_ in ZSEG) + f"+{N['Fpz']}*({Lr}-{N['xp']})/{Lr}", "N", "Suma de los tramos cargados", fmt="#,##0")
 der("R2z", "Reacción R2z (plano z) = Σ q·(e-s)·((s+e)/2)/L",
-    "=" + "+".join(f"{q_}*({e_}-{s_})*(({s_}+{e_})/2)/{Lr}" for q_, s_, e_ in ZSEG), "N", fmt="#,##0")
+    "=" + "+".join(f"{q_}*({e_}-{s_})*(({s_}+{e_})/2)/{Lr}" for q_, s_, e_ in ZSEG) + f"+{N['Fpz']}*{N['xp']}/{Lr}", "N", fmt="#,##0")
 der("R1", "Reacción resultante en rodamiento izquierdo R1 = √(R1y² + R1z²)", f"=SQRT({N['R1y']}^2+{N['R1z']}^2)", "N", fmt="#,##0")
 der("R2", "Reacción resultante en rodamiento derecho R2", f"=SQRT({N['R2y']}^2+{N['R2z']}^2)", "N", fmt="#,##0")
 der("chk", "Control: ΣRy - F + ΣRz - Σ pesos (debe dar 0)",
-    f"={N['R1y']}+{N['R2y']}-{N['W']}+{N['R1z']}+{N['R2z']}-(" + "+".join(f"{q_}*({e_}-{s_})" for q_, s_, e_ in ZSEG) + ")", "N", fmt="0.00")
+    f"={N['R1y']}+{N['R2y']}-{N['W']}-{N['Fpy']}+{N['R1z']}+{N['R2z']}-{N['Fpz']}-(" + "+".join(f"{q_}*({e_}-{s_})" for q_, s_, e_ in ZSEG) + ")", "N", fmt="0.00")
 # secciones y resistencia de los muñones
 def _ft(D_): return f"IF({D_}<=51,1.24*{D_}^-0.107,IF({D_}<=254,1.51*{D_}^-0.157,1.51*254^-0.157))"
 for sfx, Dm_, dm_ in (("I", N['DmI'], N['dmI']), ("D", N['DmD'], N['dmD'])):
@@ -205,12 +224,14 @@ for sfx, Dm_, dm_ in (("I", N['DmI'], N['dmI']), ("D", N['DmD'], N['dmD'])):
     der(f"Qm{sfx}", f"Muñón {lado_}: Q = ⅔·(R³ - r³)", f"=2/3*(({Dm_}/2)^3-({dm_}/2)^3)", "mm³", fmt="#,##0")
     der(f"bm{sfx}", f"Muñón {lado_}: b = Dm - dm", f"={Dm_}-{dm_}", "mm", fmt="0.0")
     der(f"fTm{sfx}", f"Muñón {lado_}: fT", "=" + _ft(Dm_), "-", "Ec. (21) con Dm", fmt="0.000")
-der("fSm", "Muñones: fS = a·SuM^b", f"=INDEX(Fórmulas!$B$5:$B$8,MATCH({N['termM']},Fórmulas!$A$5:$A$8,0))*{N['SuM']}"
-    f"^INDEX(Fórmulas!$C$5:$C$8,MATCH({N['termM']},Fórmulas!$A$5:$A$8,0))", "-", "Ec. (25)-(26) con la terminación de los muñones", fmt="0.000")
-der("SemI", "Muñón izquierdo: Se = fS·fT·fC·f1·mín(0,5·SuM ; 690)", f"={N['fSm']}*{N['fTmI']}*{N['f1']}*MIN(0.5*{N['SuM']},690)", "MPa", "Ec. (20), fC = 1", fmt="0.0")
-der("SemD", "Muñón derecho: Se = fS·fT·fC·f1·mín(0,5·SuM ; 690)", f"={N['fSm']}*{N['fTmD']}*{N['f1']}*MIN(0.5*{N['SuM']},690)", "MPa", "Ec. (20), fC = 1", fmt="0.0")
-der("safM", "Muñones: √α Neuber flexión (SuM)", f"=1.24-0.00225*{N['SuM']}+1.6E-6*{N['SuM']}^2-4.1E-10*{N['SuM']}^3", "√mm", "Ec. (10)-a", fmt="0.0000")
-der("satM", "Muñones: √α Neuber torsión (SuM)", f"=0.958-0.001834*{N['SuM']}+1.43E-6*{N['SuM']}^2-4.1E-10*{N['SuM']}^3", "√mm", "Ec. (10)-b", fmt="0.0000")
+for sfx, lado_ in (("I", "izquierdo"), ("D", "derecho")):
+    der(f"SuM{sfx}", f"Muñón {lado_}: Su usado", f"=IF({N['SuM'+sfx+'in']}>0,{N['SuM'+sfx+'in']},{N['Su']})", "MPa", fmt="0")
+    der(f"SyM{sfx}", f"Muñón {lado_}: Sy usado", f"=IF({N['SyM'+sfx+'in']}>0,{N['SyM'+sfx+'in']},{N['Sy']})", "MPa", fmt="0")
+    der(f"fSm{sfx}", f"Muñón {lado_}: fS = a·Su^b", f"=INDEX(Fórmulas!$B$5:$B$8,MATCH({N['termM'+sfx]},Fórmulas!$A$5:$A$8,0))*{N['SuM'+sfx]}"
+        f"^INDEX(Fórmulas!$C$5:$C$8,MATCH({N['termM'+sfx]},Fórmulas!$A$5:$A$8,0))", "-", "Ec. (25)-(26)", fmt="0.000")
+    der(f"Sem{sfx}", f"Muñón {lado_}: Se = fS·fT·fC·f1·mín(0,5·Su ; 690)", f"={N['fSm'+sfx]}*{N['fTm'+sfx]}*{N['f1']}*MIN(0.5*{N['SuM'+sfx]},690)", "MPa", "Ec. (20), fC = 1", fmt="0.0")
+    der(f"safM{sfx}", f"Muñón {lado_}: √α Neuber flexión", f"=1.24-0.00225*{N['SuM'+sfx]}+1.6E-6*{N['SuM'+sfx]}^2-4.1E-10*{N['SuM'+sfx]}^3", "√mm", "Ec. (10)-a", fmt="0.0000")
+    der(f"satM{sfx}", f"Muñón {lado_}: √α Neuber torsión", f"=0.958-0.001834*{N['SuM'+sfx]}+1.43E-6*{N['SuM'+sfx]}^2-4.1E-10*{N['SuM'+sfx]}^3", "√mm", "Ec. (10)-b", fmt="0.0000")
 der("Meje", "Masa del eje M_eje = ρ·(A·L_tubo + A_mI·L_mI + A_mD·L_mD)",
     f"={N['rho']}*({N['A']}*{N['Ltu']}+{N['AmI']}*{N['LmI']}+{N['AmD']}*{N['LmD']})", "kg", fmt="0.00")
 der("Mgoma", "Masa del engomado M_goma = ρg·Ag·L_g", f"={N['rhog']}*{N['Ag']}*{N['Lg']}", "kg", fmt="0.00")
@@ -238,7 +259,7 @@ der("wu", "Desbalanceo en las tensiones wu = F_u/L (si se incluye)", f"={N['ub']
 der("rFu", "Relación F_u / F manchón", f"={N['Fu']}/{N['W']}", "-", fmt="0.0000")
 
 dv = DataValidation(type="list", formula1='"Rectificado,Maquinado o estirado en frío,Laminado en caliente,Forjado"', allow_blank=False)
-ds.add_data_validation(dv); dv.add(f"B{term_row}"); dv.add(f"B{termM_row}")
+ds.add_data_validation(dv); dv.add(f"B{term_row}"); dv.add(f"B{termMI_row}"); dv.add(f"B{termMD_row}")
 dve = DataValidation(type="list", formula1="=Fórmulas!$F$5:$F$10", allow_blank=False)
 ds.add_data_validation(dve); dve.add(f"B{elec_row}")
 dvs = DataValidation(type="list", formula1='"Con sobremonta,Maquinada al ras"', allow_blank=False)
@@ -252,10 +273,10 @@ L, a, b, w, cl, T0 = (N[k] for k in ("L", "a", "b", "w", "cl", "T0"))
 def segV(x, q_, s_, e_): return f"{q_}*MAX(0,MIN({x},{e_})-{s_})"
 def segM(x, q_, s_, e_): return f"{q_}*IF({x}<={s_},0,IF({x}<={e_},({x}-{s_})^2/2,({e_}-{s_})*({x}-({s_}+{e_})/2)))"
 YSEG = [(N['qy'], N['a'], f"({N['a']}+{N['cl']})")]
-def Vyf(x): return f"({N['R1y']}-" + "-".join(segV(x, *sg) for sg in YSEG) + ")"
-def Myf(x): return f"({N['R1y']}*{x}-" + "-".join(segM(x, *sg) for sg in YSEG) + ")"
-def Vzf(x): return f"({N['R1z']}-" + "-".join(segV(x, *sg) for sg in ZSEG) + ")"
-def Mzf(x): return f"({N['R1z']}*{x}-" + "-".join(segM(x, *sg) for sg in ZSEG) + ")"
+def Vyf(x): return f"({N['R1y']}-" + "-".join(segV(x, *sg) for sg in YSEG) + f"-{N['Fpy']}*IF({x}>{N['xp']},1,0))"
+def Myf(x): return f"({N['R1y']}*{x}-" + "-".join(segM(x, *sg) for sg in YSEG) + f"-{N['Fpy']}*MAX(0,{x}-{N['xp']}))"
+def Vzf(x): return f"({N['R1z']}-" + "-".join(segV(x, *sg) for sg in ZSEG) + f"-{N['Fpz']}*IF({x}>{N['xp']},1,0))"
+def Mzf(x): return f"({N['R1z']}*{x}-" + "-".join(segM(x, *sg) for sg in ZSEG) + f"-{N['Fpz']}*MAX(0,{x}-{N['xp']}))"
 def Vf(x): return f"SQRT({Vyf(x)}^2+{Vzf(x)}^2)"
 def Mf(x): return f"SQRT({Myf(x)}^2+{Mzf(x)}^2)"
 def zsel(x, vI, vT, vD): return f"IF({x}<{N['xsI']},{vI},IF({x}<={N['xsD']},{vT},{vD}))"
@@ -274,7 +295,8 @@ heads = ["x [mm]", "Vy [N]", "Vz [N]", "V = √(Vy²+Vz²) [N]", "My [N·mm]", "
          "My/EI [1/mm]", "∫ My/EI", "∫∫ My/EI", "Flecha y [mm]",
          "Mz/EI [1/mm]", "∫ Mz/EI", "∫∫ Mz/EI", "Flecha z [mm]", "Flecha total [mm]",
          "Vu desbalanceo [N]", "Mu desbalanceo [N·mm]", "σm desbalanceo [MPa]", "τm desbalanceo (corte) [MPa]",
-         "Zona (1 muñón izq, 2 tubo, 3 muñón der)", "I [mm⁴]", "J [mm⁴]", "c [mm]", "Q [mm³]", "b [mm]", "Se [MPa]", "Su [MPa]", "Sy [MPa]"]
+         "Zona (1 muñón izq, 2 tubo, 3 muñón der)", "I [mm⁴]", "J [mm⁴]", "c [mm]", "Q [mm³]", "b [mm]", "Se [MPa]", "Su [MPa]", "Sy [MPa]",
+         "CS fat. muñón izq", "CS fat. tubo", "CS fat. muñón der", "CS fl. muñón izq", "CS fl. tubo", "CS fl. muñón der"]
 cs["A1"] = ("EJE COMPLETO ENTRE APOYOS (Kf = 1): muñón izq. | tubo | muñón der. Sección y material según la zona. "
             "Concentradores en hoja 'Concentradores'. A = fibra extrema, B = eje neutro. y: tensión del manchón, z: gravedad"); cs["A1"].font = fbold
 for j, h in enumerate(heads):
@@ -283,7 +305,7 @@ for j, h in enumerate(heads):
 cs.row_dimensions[3].height = 42
 NSEG = 200; r0 = 4; rN = r0 + NSEG
 Se, Su, Sy, I, J, c_, Q, bs, E = (N[k] for k in ("Se", "Su", "Sy", "I", "J", "c", "Q", "bs", "E"))
-fmts = ["0.0", "#,##0", "#,##0", "#,##0", "#,##0", "#,##0", "#,##0", "#,##0"] + ["0.00"] * 12 + ["0.00E+00"] * 3 + ["0.0000"] + ["0.00E+00"] * 3 + ["0.0000", "0.0000", "0.00", "0.0", "0.000", "0.000", "0", "#,##0", "#,##0", "0.0", "#,##0", "0.0", "0.0", "0", "0"]
+fmts = ["0.0", "#,##0", "#,##0", "#,##0", "#,##0", "#,##0", "#,##0", "#,##0"] + ["0.00"] * 12 + ["0.00E+00"] * 3 + ["0.0000"] + ["0.00E+00"] * 3 + ["0.0000", "0.0000", "0.00", "0.0", "0.000", "0.000", "0", "#,##0", "#,##0", "0.0", "#,##0", "0.0", "0.0", "0", "0", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"]
 for i in range(NSEG + 1):
     rr = r0 + i; x = f"A{rr}"
     F_ = {}
@@ -323,8 +345,10 @@ for i in range(NSEG + 1):
     F_["AL"] = "=" + zsel(x, N['QmI'], Q, N['QmD'])
     F_["AM"] = "=" + zsel(x, N['bmI'], bs, N['bmD'])
     F_["AN"] = "=" + zsel(x, N['SemI'], Se, N['SemD'])
-    F_["AO"] = "=" + zsel(x, N['SuM'], Su, N['SuM'])
-    F_["AP"] = "=" + zsel(x, N['SyM'], Sy, N['SyM'])
+    F_["AO"] = "=" + zsel(x, N['SuMI'], Su, N['SuMD'])
+    F_["AP"] = "=" + zsel(x, N['SyMI'], Sy, N['SyMD'])
+    for cc_, srcc, zz in (("AQ", "R", 1), ("AR", "R", 2), ("AS", "R", 3), ("AT", "T", 1), ("AU", "T", 2), ("AV", "T", 3)):
+        F_[cc_] = f"=IF(AH{rr}={zz},{srcc}{rr},9999)"
     for j in range(len(heads)):
         col = get_column_letter(j + 1)
         cell = cs[f"{col}{rr}"]; cell.value = F_[col]; cell.font = fb; cell.number_format = fmts[j]
@@ -403,11 +427,11 @@ for j, k in enumerate("BCD"):
      "c zona [mm]": "=" + zsel(x, N['cmI'], c_, N['cmD']),
      "Q zona [mm³]": "=" + zsel(x, N['QmI'], Q, N['QmD']),
      "b zona [mm]": "=" + zsel(x, N['bmI'], bs, N['bmD']),
-     "Su zona [MPa]": "=" + zsel(x, N['SuM'], Su, N['SuM']),
-     "Sy zona [MPa]": "=" + zsel(x, N['SyM'], Sy, N['SyM']),
+     "Su zona [MPa]": "=" + zsel(x, N['SuMI'], Su, N['SuMD']),
+     "Sy zona [MPa]": "=" + zsel(x, N['SyMI'], Sy, N['SyMD']),
      "Se zona [MPa]": "=" + zsel(x, N['SemI'], Se, N['SemD']),
-     "√α flexión zona": "=" + zsel(x, N['safM'], N['sa_f'], N['safM']),
-     "√α torsión zona": "=" + zsel(x, N['satM'], N['sa_t'], N['satM']),
+     "√α flexión zona": "=" + zsel(x, N['safMI'], N['sa_f'], N['safMD']),
+     "√α torsión zona": "=" + zsel(x, N['satMI'], N['sa_t'], N['satMD']),
      "V [N]": "=" + Vf(x),
      "M [N·mm]": "=" + Mf(x),
      "T [N·mm]": "=" + Tf(x),
@@ -472,7 +496,7 @@ srows = [
  ("V [N]", "Equilibrio (DCL), mismo modelo que el resto de la planilla"),
  ("M [N·mm]", "Equilibrio (DCL)"),
  ("T [N·mm]", "* Distribución de T supuesta (ver Datos)"),
- ("Garganta t = espesor del tubo [mm]", "Compendio cap. 18, ec. (1): t = espesor de las partes a unir; no incluye la sobremonta"),
+ ("Garganta t = espesor del tubo [mm]", "Dato (0 = espesor del tubo). Compendio cap. 18, ec. (1): penetración completa t = espesor; no incluye la sobremonta. * Garganta menor: anillo exterior"),
  ("I = π/64·(D⁴ - d⁴) [mm⁴]", "Penetración completa: la sección de la soldadura es la corona del tubo (hoja Datos)"),
  ("J = 2I [mm⁴]", "Hoja Datos"),
  ("σ0 = M·c/I [MPa]", "Compendio cap. 18, ec. (1) y Tabla 4 (σ = M/S); c = D/2"),
@@ -519,8 +543,10 @@ SR = {lab: 6 + i for i, (lab, note) in enumerate(srows)}
 for lab, note in srows:
     sw.cell(SR[lab], 1, lab).font = fb; sw.cell(SR[lab], 4, note).font = fsmall
 FTAB = "Fórmulas!$A$5:$A$8"
-for k, xs in (("B", N["xsI"]), ("C", N["xsD"])):
+for k, xs, sd in (("B", N["xsI"], "I"), ("C", N["xsD"], "D")):
     g = lambda lab, k=k: f"{k}{SR[lab]}"
+    _gw = g("Garganta t = espesor del tubo [mm]")
+    Qw = f"(2/3*(({N['D']}/2)^3-({N['D']}/2-{_gw})^3))"; bw_ = f"(2*{_gw})"
     x = g("x [mm]")
     sumin = g("Su mínimo [MPa]"); symin = g("Sy mínimo [MPa]"); se = g("Se = fS·fT·fC·f1·Se' [MPa]")
     sAa, sAm = g("A: σ'a [MPa]"), g("A: σ'm [MPa]"); sBa, sBm = g("B: σ'a [MPa]"), g("B: σ'm [MPa]")
@@ -531,18 +557,18 @@ for k, xs in (("B", N["xsI"]), ("C", N["xsD"])):
      "V [N]": "=" + Vf(x),
      "M [N·mm]": "=" + Mf(x),
      "T [N·mm]": "=" + Tf(x),
-     "Garganta t = espesor del tubo [mm]": f"={N['t']}",
-     "I = π/64·(D⁴ - d⁴) [mm⁴]": f"={I}",
-     "J = 2I [mm⁴]": f"={J}",
+     "Garganta t = espesor del tubo [mm]": f"=IF({N['gar']}>0,MIN({N['gar']},{N['t']}),{N['t']})",
+     "I = π/64·(D⁴ - d⁴) [mm⁴]": f"=PI()/64*({N['D']}^4-({N['D']}-2*{g('Garganta t = espesor del tubo [mm]')})^4)",
+     "J = 2I [mm⁴]": f"=2*{g('I = π/64·(D⁴ - d⁴) [mm⁴]')}",
      "σ0 = M·c/I [MPa]": f"={g('M [N·mm]')}*{c_}/{g('I = π/64·(D⁴ - d⁴) [mm⁴]')}",
      "τT = T·c/J [MPa]": f"={g('T [N·mm]')}*{c_}/{g('J = 2I [mm⁴]')}",
-     "τV = V·Q/(I·b) [MPa]": f"=ABS({g('V [N]')})*{Q}/({g('I = π/64·(D⁴ - d⁴) [mm⁴]')}*{bs})",
+     "τV = V·Q/(I·b) [MPa]": f"=ABS({g('V [N]')})*{Qw}/({g('I = π/64·(D⁴ - d⁴) [mm⁴]')}*{bw_})",
      "Su tubo [MPa]": f"={N['Su']}",
-     "Su muñón [MPa]": f"={N['SuM']}",
+     "Su muñón [MPa]": f"={N['SuM'+sd]}",
      "Su electrodo [MPa]": f"=INDEX(Fórmulas!$G$5:$G$10,MATCH({N['elec']},Fórmulas!$F$5:$F$10,0))",
      "Su mínimo [MPa]": f"=MIN({g('Su tubo [MPa]')},{g('Su muñón [MPa]')},{g('Su electrodo [MPa]')})",
      "Sy tubo [MPa]": f"={N['Sy']}",
-     "Sy muñón [MPa]": f"={N['SyM']}",
+     "Sy muñón [MPa]": f"={N['SyM'+sd]}",
      "Sy electrodo [MPa]": f"=INDEX(Fórmulas!$H$5:$H$10,MATCH({N['elec']},Fórmulas!$F$5:$F$10,0))",
      "Sy mínimo [MPa]": f"=MIN({g('Sy tubo [MPa]')},{g('Sy muñón [MPa]')},{g('Sy electrodo [MPa]')})",
      "Kf soldadura": f"=INDEX(Fórmulas!$G$15:$G$16,MATCH({N['sobre']},Fórmulas!$F$15:$F$16,0))",
@@ -558,10 +584,10 @@ for k, xs in (("B", N["xsI"]), ("C", N["xsD"])):
      "A: σa = Kf·|σ0| [MPa]": f"={kf}*ABS({g('σ0 = M·c/I [MPa]')})",
      "A: τm = τT [MPa]": f"={g('τT = T·c/J [MPa]')}",
      "A: σ'a [MPa]": f"={g('A: σa = Kf·|σ0| [MPa]')}",
-     "A: σ'm [MPa]": f"=SQRT(({N['wu']}*{x}*({L}-{x})/2*{c_}/{I})^2+3*{g('A: τm = τT [MPa]')}^2)",
+     "A: σ'm [MPa]": f"=SQRT(({N['wu']}*{x}*({L}-{x})/2*{c_}/{g('I = π/64·(D⁴ - d⁴) [mm⁴]')})^2+3*{g('A: τm = τT [MPa]')}^2)",
      "B: τa = Kf·τV [MPa]": f"={kf}*{g('τV = V·Q/(I·b) [MPa]')}",
      "B: σ'a [MPa]": f"=SQRT(3)*{g('B: τa = Kf·τV [MPa]')}",
-     "B: σ'm [MPa]": f"=SQRT(3)*(ABS({g('A: τm = τT [MPa]')})+ABS({N['wu']}*({L}/2-{x}))*{Q}/({I}*{bs}))",
+     "B: σ'm [MPa]": f"=SQRT(3)*(ABS({g('A: τm = τT [MPa]')})+ABS({N['wu']}*({L}/2-{x}))*{Qw}/({g('I = π/64·(D⁴ - d⁴) [mm⁴]')}*{bw_}))",
      "A: CS Goodman": f"=IFERROR(1/({sAa}/{se}+{sAm}/{sumin}),9999)",
      "A: CS Soderberg": f"=IFERROR(1/({sAa}/{se}+{sAm}/{symin}),9999)",
      "A: CS Gerber": (f"=IFERROR(IF({sAm}=0,{se}/{sAa},(-({sAa}/{se})+SQRT(({sAa}/{se})^2+4*({sAm}/{sumin})^2))"
@@ -570,8 +596,8 @@ for k, xs in (("B", N["xsI"]), ("C", N["xsD"])):
      "CS fatiga Goodman (mín A, B)": f"=MIN({g('A: CS Goodman')},{g('B: CS Goodman')})",
     }
     kfl = f"IF({N['swfl']}=1,{kf},1)"
-    F_["σ'máx A (fluencia) [MPa]"] = f"=SQRT(({kfl}*ABS({g('σ0 = M·c/I [MPa]')})+{N['wu']}*{x}*({L}-{x})/2*{c_}/{I})^2+3*{g('τT = T·c/J [MPa]')}^2)"
-    F_["σ'máx B (fluencia) [MPa]"] = f"=SQRT(3)*({kfl}*{g('τV = V·Q/(I·b) [MPa]')}+ABS({g('τT = T·c/J [MPa]')})+ABS({N['wu']}*({L}/2-{x}))*{Q}/({I}*{bs}))"
+    F_["σ'máx A (fluencia) [MPa]"] = f"=SQRT(({kfl}*ABS({g('σ0 = M·c/I [MPa]')})+{N['wu']}*{x}*({L}-{x})/2*{c_}/{g('I = π/64·(D⁴ - d⁴) [mm⁴]')})^2+3*{g('τT = T·c/J [MPa]')}^2)"
+    F_["σ'máx B (fluencia) [MPa]"] = f"=SQRT(3)*({kfl}*{g('τV = V·Q/(I·b) [MPa]')}+ABS({g('τT = T·c/J [MPa]')})+ABS({N['wu']}*({L}/2-{x}))*{Qw}/({g('I = π/64·(D⁴ - d⁴) [mm⁴]')}*{bw_}))"
     F_["CS fluencia = Sy mín / σ'máx"] = (f"=IFERROR({symin}/MAX({g(chr(963)+chr(39)+'máx A (fluencia) [MPa]')},"
                                           f"{g(chr(963)+chr(39)+'máx B (fluencia) [MPa]')}),9999)")
     va = g("Vida: a = (0,9·Su mín)²/Se [MPa]"); vc = g("Vida: c = -1/b = 3/log(0,9·Su mín/Se)")
@@ -626,6 +652,18 @@ rline("achk", "a = x_tope - B (debe ser ≥ 0)", f"={N['a']}", "mm", fmt="0.0")
 rline("bchk", "b = L - a - B (debe ser ≥ 0)", f"={N['b']}", "mm", fmt="0.0")
 rline("geo", "Control: el manchón entra entre apoyos", f'=IF(OR({N["a"]}<0,{N["b"]}<0),"ERROR: el manchón no entra entre apoyos (a < 0 o b < 0)",IF({N["a"]}<{N["xg0"]},"AVISO: el manchón empieza antes del engomado","OK"))', "", "Si da ERROR, todos los resultados carecen de sentido")
 rs[RS["geo"]].font = Font(name=F, size=10, bold=True, color="C00000")
+rsec("Geometría (vista de frente: muñón izq. | tubo | muñón der. motriz)")
+rline("gL", "L entre centros de rodamientos", f"={N['L']}", "mm", fmt="0.0")
+rline("gmI", "Muñón izquierdo: x = 0 → soldadura izq. / largo total", f"={N['xsI']}", "mm", "Columna C: largo total del muñón [mm]", fmt="0.0")
+rs.cell(rr - 1, 3).value = f"={N['LmI']}"; rs.cell(rr - 1, 3).number_format = "0"
+rline("gtu", "Tubo: soldadura izq. → soldadura der. / largo", f"={N['xsD']}", "mm", "Columna B: x de la soldadura der.; C: largo del tubo", fmt="0.0")
+rs.cell(rr - 1, 3).value = f"={N['Ltu']}"; rs.cell(rr - 1, 3).number_format = "0"
+rline("gmD", "Muñón derecho: soldadura der. → L / largo total", f"={N['L']}-{N['xsD']}", "mm", "Columna C: largo total del muñón [mm]", fmt="0.0")
+rs.cell(rr - 1, 3).value = f"={N['LmD']}"; rs.cell(rr - 1, 3).number_format = "0"
+rline("gma", "Manchón: inicio a / tope", f"={N['a']}", "mm", "Columna C: x del tope", fmt="0.0")
+rs.cell(rr - 1, 3).value = f"={N['xtp']}"; rs.cell(rr - 1, 3).number_format = "0"
+rline("gFp", "Transmisión: fuerza radial / momento sobre el rodamiento der.", f"={N['Fp']}", "N", "Columna C: M = F·c [N·mm]", fmt="#,##0")
+rs.cell(rr - 1, 3).value = f"={N['Mp']}"; rs.cell(rr - 1, 3).number_format = "#,##0"
 rsec("Cargas y esfuerzos")
 rline("R1y", "Reacción R1y / R1z", f"={N['R1y']}", "N", fmt="#,##0")
 rs.cell(rr - 1, 3).value = f"={N['R1z']}"; rs.cell(rr - 1, 3).number_format = "#,##0"; rs.cell(rr - 1, 4).value = "Columna B: plano y, columna C: plano z [N]"
@@ -651,6 +689,11 @@ rsec("Cuerpo del tubo (sin concentrador)")
 rline("csb", "CS fatiga Goodman mínimo", f"=MIN({rng('R')})", "-", "Ec. (44)-b")
 rline("xcsb", "Posición", f"=INDEX({rng('A')},MATCH(MIN({rng('R')}),{rng('R')},0))", "mm", fmt="0.0")
 rline("flb", "CS fluencia mínimo", f"=MIN({rng('T')})", "-", "Ec. (77)")
+rsec("Por zona (sin concentrador, Kf = 1): CS mínimo y posición")
+for zc, zf, lab_ in (("AQ", "AT", "Muñón izquierdo"), ("AR", "AU", "Tubo"), ("AS", "AV", "Muñón derecho")):
+    rline(f"z{zc}", f"{lab_}: CS fatiga mínimo / x", f"=MIN({rng(zc)})", "-", "Columna C: posición x [mm]")
+    rs.cell(rr - 1, 3).value = f"=INDEX({rng('A')},MATCH(MIN({rng(zc)}),{rng(zc)},0))"; rs.cell(rr - 1, 3).number_format = "0"
+    rline(f"z{zf}", f"{lab_}: CS fluencia mínimo", f"=MIN({rng(zf)})", "-")
 rsec("Secciones con concentrador")
 for j, k in enumerate("BCD"):
     rline(f"cs{j}", f"Sección {j+1}: CS fatiga Goodman",
@@ -872,6 +915,9 @@ lines = [
 ("Geometría", "Vista de frente: a la izquierda el muñón que entra en el apoyo, en el medio el tubo (entre soldaduras) y a la derecha el muñón motriz. L es la distancia entre centros de rodamientos; entre 0 y la soldadura izquierda, y entre la soldadura derecha y L, la sección es la del muñón."),
 ("Manchón", "Las correas entran desde la izquierda y hacen tope a la derecha: el manchón va de x_tope - B a x_tope (x_tope = fin del engomado si no se carga)."),
 ("Sección por zona", "I, J, c, Q, b, Su, Sy y Se se toman según la zona de cada x (muñón izq., tubo, muñón der.). Muñones: material y terminación propios; fT con su diámetro."),
+("Muñones *", "Cilindro recto con el diámetro menor de los escalones (conservativo). Material y terminación propios de cada muñón (0 = igual al tubo)."),
+("Transmisión *", "Polea o piñón en el muñón derecho, en voladizo a una distancia c del rodamiento: F = K·2T/Dp en la dirección θ. Da momento F·c sobre el apoyo derecho y descarga el izquierdo."),
+("Garganta *", "Soldadura a tope: penetración completa garganta = t. Si se carga una garganta menor, sección resistente = anillo exterior de ese espesor."),
 ("Pesos por tramo", "Muñones, tubo y engomado se cargan cada uno en su tramo (plano z). La punta de los muñones fuera de los apoyos no se considera *."),
 ("Ejes", "x a lo largo del rullo (desde el apoyo izquierdo), y dirección de la tensión del manchón, z dirección de la gravedad."),
 ("Carga y *", "Manchón: qy = F/B uniforme entre x = a y x = a + B. F = 2·T total (ramales paralelos). T por correa = 4·m·Lt²·f² (cuerda vibrante, no está en el compendio)."),
@@ -950,13 +996,18 @@ dmap = [("vD","D"),("vt","t"),("vL","L"),("vnb","nb"),("vbw","bw"),("vmb","mb"),
         ("vFu","Fu"),("vrFu","rFu"),("vub","ub"),("vexc","ee"),("vwu","wu"),("veu","eu"),
         ("vDextmI","DmI"),("vDintmI","dmI"),("vLmI","LmI"),("vDextmD","DmD"),("vDintmD","dmD"),("vLmD","LmD"),
         ("vxgcero","xg0"),("vLg","Lg"),("vAmI","AmI"),("vAmD","AmD"),("vLtubo","Ltu"),("vMeje","Meje"),("vMgoma","Mgoma"),
-        ("vxG","xG"),("vxtp","xtp"),("vxtope","xtope"),("vwmI","wmI"),("vwmD","wmD"),("vwg","wg"),("vSemI","SemI"),("vSemD","SemD"),("vtermM","termM"),("vomega","om"),("veper","eper"),("vUper","Uper"),("vUperI","UperI"),("vUperD","UperD")]
+        ("vxG","xG"),("vxtp","xtp"),("vxtope","xtope"),("vwmI","wmI"),("vwmD","wmD"),("vwg","wg"),("vSemI","SemI"),("vSemD","SemD"),("vtermMI","termMI"),("vtermMD","termMD"),("vSuMI","SuMI"),("vSuMD","SuMD"),("vSyMI","SyMI"),("vSyMD","SyMD"),("vFp","Fp"),("vFpy","Fpy"),("vFpz","Fpz"),("vDp","Dp"),("vcp","cp"),("vKp","Kp"),("vthp","thp"),("vswp","swp"),("vMp","Mp"),("vgar","gar"),("vomega","om"),("veper","eper"),("vUper","Uper"),("vUperI","UperI"),("vUperD","UperD")]
 for ln, k in dmap:
     nm(ln, N[k])
 for ln, k in [("vsrev","srev"),("vMmax","Mmax"),("vxM","xM"),("vsmax","smax"),("vfl","fl"),("vxfl","xfl"),("vcsb","csb"),("vxcsb","xcsb"),
               ("vflb","flb"),("vcsg","csg"),("vflg","flg")]:
     nm(ln, f"Resultados!${RS[k][0]}${RS[k][1:]}")
-for ln, k in [("vxsI","xsI"),("vxsD","xsD"),("vSuM","SuM"),("vSyM","SyM"),("velec","elec"),("vsobre","sobre")]:
+for k_, suf in (("B", "izq"), ("C", "der")):
+    for pre, lab in (("vsx", "x [mm]"), ("vsg", "Garganta t = espesor del tubo [mm]"), ("vskf", "Kf soldadura"),
+                     ("vssu", "Su mínimo [MPa]"), ("vsse", "Se = fS·fT·fC·f1·Se' [MPa]"),
+                     ("vscs", "CS fatiga Goodman (mín A, B)"), ("vsfl", "CS fluencia = Sy mín / σ'máx")):
+        nm(pre + suf, f"Soldadura!${k_}${SR[lab]}")
+for ln, k in [("vxsI","xsI"),("vxsD","xsD"),("velec","elec"),("vsobre","sobre")]:
     nm(ln, N[k])
 for k, lado in (("B", "izq"), ("C", "der")):
     for ln, lab in [("sKf", "Kf soldadura"), ("sSe", "Se = fS·fT·fC·f1·Se' [MPa]"), ("ssa", "A: σ'a [MPa]"),
