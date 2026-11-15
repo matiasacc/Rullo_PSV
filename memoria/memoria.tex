@@ -36,6 +36,10 @@ Verificación estática y a fatiga\\
 \small Fuente de cálculo: Compendio de Cálculo Estructural II, FCEFyN--UNC 2024, cap.~14
 \end{center}
 
+\ifnum\vgeomok=0
+\begin{center}\fbox{\parbox{0.9\textwidth}{\centering\textbf{ATENCIÓN:} el manchón no entra entre apoyos
+($a+B>L$, $b=\vbfin$~mm). Los resultados de esta memoria no tienen validez hasta corregir los datos.}}\end{center}
+\fi
 % =================================================================
 \section{Objeto}
 Verificar a fluencia y a fatiga el rullo delantero (motriz) del torno PSV, que trabaja entre dos
@@ -130,7 +134,7 @@ fluencia por separado con el tensor máximo (77).
 \textbf{Sección crítica del cuerpo} ($x=\vtxcrit$~mm, $K_f=1$, punto en la fibra extrema;
 $x$ axial, $y$ radial, $z$ tangente, MPa):
 \[
-\sigma_m=\begin{bmatrix}0&0&\vttaum\\0&0&0\\\vttaum&0&0\end{bmatrix}
+\sigma_m=\begin{bmatrix}\vtsigm&0&\vttaum\\0&0&0\\\vttaum&0&0\end{bmatrix}
 \qquad
 \sigma_a=\begin{bmatrix}\vtsiga&0&0\\0&0&0\\0&0&0\end{bmatrix}
 \qquad
@@ -184,8 +188,10 @@ Fuera del compendio.
 \begin{itemize}\setlength\itemsep{1pt}
 \item Primera velocidad crítica de flexión (viga uniforme simplemente apoyada, sin masa del manchón):
 $n_c=\frac{30}{\pi}\left(\frac{\pi}{L}\right)^2\sqrt{EI/\mu}=\vnc$~rpm; $n/n_c=\vrnc$.
-\item Desbalanceo residual con grado $G=\vG$~mm/s (ISO 21940-11, rotor rígido): $F_u=M\,G\,\omega=\vFu$~N,
-$F_u/F=\vrFu$. Gira con el eje, por lo que en el material produce tensión media, no alternante.
+\item Desbalanceo por rotación: $F_u=M\,e\,\omega^2=\vFu$~N con $e=\vexc$~mm ($e=e_{per}$ del grado $G=\vG$~mm/s,
+ISO 21940-11, si no se carga una excentricidad medida); $F_u/F=\vrFu$. Gira con el eje: para el material es una
+carga fija, por lo que entra en el cálculo como tensión media ($\sigma_m$ en la fibra extrema, $\tau_m$ en el eje
+neutro), sin $K_f$, repartida en $L$\supu\ (\ifnum\vub=1 incluido\else no incluido\fi\ en las tensiones).
 \end{itemize}
 
 \noindent\textbf{Masa que gira y desbalance admisible.} El eje es el tubo entre soldaduras
@@ -211,6 +217,7 @@ Apoyo derecho\supu & $U_{per}\,x_G/L$ & \vUperD~g·mm \\
 \item[\supu] Tensión por correa $T=4\,m\,L_t^2\,f^2$ (cuerda vibrante): no figura en el compendio.
 \item[\supu] $L_t=(\text{desarrollo}-\pi D)/2$ si no se mide: ramales paralelos y rullos de igual diámetro.
 \item[\supu] Mitad del peso del manchón sobre cada rullo.
+\item[\supu] Desbalanceo uniforme a lo largo de $L$.
 \item[\supu] Engomado: solo peso y diámetro de apoyo del manchón ($D+2e$); densidad típica de caucho si no se carga el dato real.
 \item[\supu] Torque constante, tomado por las correas de forma pareja en $B$.
 \item[\supu] Desbalance: un solo grado $G$ para todo el rotor (eje + engomado). Reparto de $U_{per}$ en los apoyos por palanca respecto del centro de masa: verificar contra ISO 21940-11.

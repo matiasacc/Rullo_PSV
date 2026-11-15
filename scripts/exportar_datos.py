@@ -14,7 +14,7 @@ raiz = Path(__file__).resolve().parent.parent
 xlsx = Path(sys.argv[1]) if len(sys.argv) > 1 else raiz / "planilla" / "Rullo_PSV_estatico_fatiga.xlsx"
 wb = load_workbook(xlsx, data_only=True)
 
-CRUDOS = {"vpp", "vpm", "vlado", "vswfl", "vkonuno", "vkondos", "vkontres"}  # enteros para \ifnum
+CRUDOS = {"vpp", "vpm", "vub", "vlado", "vswfl", "vkonuno", "vkondos", "vkontres"}  # enteros para \ifnum
 
 def esc(t):
     for a, b in (("\\", r"\textbackslash{}"), ("&", r"\&"), ("%", r"\%"), ("#", r"\#"), ("_", r"\_"), ("^", r"\^{}")):
@@ -60,6 +60,9 @@ for i, rom in enumerate(("uno", "dos", "tres"), 1):
 if not filas:
     filas.append("\\multicolumn{10}{c}{Sin secciones activas} \\\\")
 lineas.append("\\newcommand{\\vFilasConc}{" + " ".join(filas) + "}")
+_hb, _rb = next(iter(wb.defined_names["vbfin"].destinations))
+_bfin = wb[_hb][_rb.replace("$", "")].value
+lineas.append("\\newcommand{\\vgeomok}{" + ("1" if (_bfin is not None and _bfin >= 0) else "0") + "}")
 hoy = datetime.date.today().strftime("%d/%m/%Y")
 lineas.append(f"\\newcommand{{\\vFechaDatos}}{{{hoy}}}")
 lineas.append(f"\\newcommand{{\\vArchivo}}{{{esc(xlsx.name)}}}")
