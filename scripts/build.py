@@ -4,6 +4,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.drawing.image import Image
 from openpyxl.chart import ScatterChart, Reference, Series
 from openpyxl.comments import Comment
+from openpyxl.utils import get_column_letter
 
 F = "Arial"
 fb = Font(name=F, size=10); fbold = Font(name=F, size=10, bold=True)
@@ -91,7 +92,7 @@ termMI_row = r - 1
 sec("Muñón derecho (motriz)")
 inp("DmD", "Muñón derecho: diámetro del eje (X4)", 30, "mm", "Eje que entra a la máquina (Ø igual al izquierdo)")
 inp("dmD", "Muñón derecho: diámetro interior (0 = macizo)", 0, "mm")
-der("LmD", "Muñón derecho: largo = X3 + X4", f"={N['X3']}+{N['X4']}", "mm", "* Disco + eje modelados con el Ø del eje (conservativo: el disco es más rígido)", fmt="0.0")
+der("LmD", "Muñón derecho: largo = X3 + X4 (disco + eje)", f"={N['X3']}+{N['X4']}", "mm", "Disco: macizo Ø D. Eje: Ø de abajo", fmt="0.0")
 inp("SuMDin", "Muñón derecho: Su (0 = igual al tubo)", 0, "MPa")
 inp("SyMDin", "Muñón derecho: Sy (0 = igual al tubo)", 0, "MPa")
 inp("termMD", "Muñón derecho: terminación superficial", "Maquinado o estirado en frío", "-", "Lista: ec. (26)")
@@ -215,10 +216,13 @@ der("Mp", "Momento en el rodamiento derecho por la transmisión M = F·c", f"={N
 # pesos por tramo (plano z)
 der("wmI", "Peso muñón izquierdo ρ·g·A_mI (tramo 0 → x sold. izq.)", f"={N['pp']}*{N['rho']}*9.81*{N['AmI']}", "N/mm", fmt="0.0000")
 der("w", "Peso tubo ρ·g·A (tramo entre soldaduras)", f"={N['pp']}*{N['rho']}*9.81*{N['A']}", "N/mm", fmt="0.0000")
-der("wmD", "Peso muñón derecho ρ·g·A_mD (tramo x sold. der. → L)", f"={N['pp']}*{N['rho']}*9.81*{N['AmD']}", "N/mm", fmt="0.0000")
+der("wmD", "Peso eje derecho ρ·g·A_mD (tramo X4: fin del disco → L)", f"={N['pp']}*{N['rho']}*9.81*{N['AmD']}", "N/mm", fmt="0.0000")
+der("Adk", "Disco derecho: área π/4·D² (macizo, Ø = D exterior del tubo)", f"=PI()/4*{N['D']}^2", "mm²", fmt="0.0")
+der("wdk", "Peso disco derecho ρ·g·A_disco (tramo X3)", f"={N['pp']}*{N['rho']}*9.81*{N['Adk']}", "N/mm", fmt="0.0000")
+der("xdD", "Fin del disco x = soldadura der. + X3", f"={N['xsD']}+{N['X3']}", "mm", "Cara del disco donde arranca el eje derecho", fmt="0.0")
 der("wg", "Peso engomado ρg·g·Ag (tramo del engomado)", f"={N['pp']}*{N['rhog']}*9.81*{N['Ag']}", "N/mm",
     "* Lo que queda fuera de los apoyos (punta de los muñones) no se considera", fmt="0.0000")
-ZSEG = [(N['wmI'], "0", N['xsI']), (N['w'], N['xsI'], N['xsD']), (N['wmD'], N['xsD'], N['L']),
+ZSEG = [(N['wmI'], "0", N['xsI']), (N['w'], N['xsI'], N['xsD']), (N['wdk'], N['xsD'], N['xdD']), (N['wmD'], N['xdD'], N['L']),
         (N['wg'], N['xg0'], f"({N['xg0']}+{N['Lg']})"), (N['qz'], N['a'], f"({N['a']}+{N['cl']})")]
 Lr = N['L']
 der("R1y", "Reacción R1y (plano y) = manchón + transmisión", f"={N['W']}*({N['b']}+{N['cl']}/2)/{N['L']}+{N['Fpy']}*({N['L']}-{N['xp']})/{N['L']}", "N",
@@ -249,13 +253,19 @@ for sfx, lado_ in (("I", "izquierdo"), ("D", "derecho")):
     der(f"Sem{sfx}", f"Muñón {lado_}: Se = fS·fT·fC·f1·mín(0,5·Su ; 690)", f"={N['fSm'+sfx]}*{N['fTm'+sfx]}*{N['f1']}*MIN(0.5*{N['SuM'+sfx]},690)", "MPa", "Ec. (20), fC = 1", fmt="0.0")
     der(f"safM{sfx}", f"Muñón {lado_}: √α Neuber flexión", f"=1.24-0.00225*{N['SuM'+sfx]}+1.6E-6*{N['SuM'+sfx]}^2-4.1E-10*{N['SuM'+sfx]}^3", "√mm", "Ec. (10)-a", fmt="0.0000")
     der(f"satM{sfx}", f"Muñón {lado_}: √α Neuber torsión", f"=0.958-0.001834*{N['SuM'+sfx]}+1.43E-6*{N['SuM'+sfx]}^2-4.1E-10*{N['SuM'+sfx]}^3", "√mm", "Ec. (10)-b", fmt="0.0000")
-der("Meje", "Masa del eje M_eje = ρ·(A·L_tubo + A_mI·L_mI + A_mD·L_mD)",
-    f"={N['rho']}*({N['A']}*{N['Ltu']}+{N['AmI']}*{N['LmI']}+{N['AmD']}*{N['LmD']})", "kg", fmt="0.00")
+# disco derecho: macizo Ø D, material y terminación del muñón derecho
+der("Idk", "Disco derecho: I = π/64·D⁴", f"=PI()/64*{N['D']}^4", "mm⁴", "* Material y terminación del muñón derecho", fmt="#,##0")
+der("cdk", "Disco derecho: c = D/2", f"={N['D']}/2", "mm", fmt="0.0")
+der("Qdk", "Disco derecho: Q = ⅔·R³", f"=2/3*({N['D']}/2)^3", "mm³", fmt="#,##0")
+der("bdk", "Disco derecho: b = D", f"={N['D']}", "mm", fmt="0.0")
+der("Sedk", "Disco derecho: Se = fS·fT·fC·f1·mín(0,5·Su ; 690)", f"={N['fSmD']}*" + _ft(N['D']) + f"*{N['f1']}*MIN(0.5*{N['SuMD']},690)", "MPa", "Ec. (20) con fT de D", fmt="0.0")
+der("Meje", "Masa del eje M_eje = ρ·(A·L_tubo + A_mI·L_mI + A_disco·X3 + A_mD·X4)",
+    f"={N['rho']}*({N['A']}*{N['Ltu']}+{N['AmI']}*{N['LmI']}+{N['Adk']}*{N['X3']}+{N['AmD']}*{N['X4']})", "kg", fmt="0.00")
 der("Mgoma", "Masa del engomado M_goma = ρg·Ag·L_g", f"={N['rhog']}*{N['Ag']}*{N['Lg']}", "kg", fmt="0.00")
 der("Mrot", "Masa que gira M = M_eje + M_goma", f"={N['Meje']}+{N['Mgoma']}", "kg", fmt="0.00")
 der("xG", "Centro de masa x_G (desde el apoyo izquierdo)",
     f"=({N['rho']}*({N['A']}*{N['Ltu']}*({N['xsI']}+{N['xsD']})/2+{N['AmI']}*{N['LmI']}*({N['xsI']}-{N['LmI']}/2)"
-    f"+{N['AmD']}*{N['LmD']}*({N['xsD']}+{N['LmD']}/2))+{N['Mgoma']}*({N['xg0']}+{N['Lg']}/2))/{N['Mrot']}", "mm",
+    f"+{N['Adk']}*{N['X3']}*({N['xsD']}+{N['X3']}/2)+{N['AmD']}*{N['X4']}*({N['xdD']}+{N['X4']}/2))+{N['Mgoma']}*({N['xg0']}+{N['Lg']}/2))/{N['Mrot']}", "mm",
     "Σ(mᵢ·xᵢ)/M de muñones, tubo y engomado", fmt="0.0")
 der("om", "Velocidad angular ω = 2π·n/60", f"=2*PI()*{N['n']}/60", "rad/s", fmt="0.00")
 der("eper", "Excentricidad admisible e_per = 1000·G/ω", f"=1000*{N['G']}/{N['om']}", "g·mm/kg",
@@ -283,9 +293,55 @@ dvs = DataValidation(type="list", formula1='"Con sobremonta,Maquinada al ras"', 
 ds.add_data_validation(dvs); dvs.add(f"B{sobre_row}")
 dvt = DataValidation(type="list", formula1='"A tope,Filete"', allow_blank=False)
 ds.add_data_validation(dvt); dvt.add(f"B{tipoI_row}"); dvt.add(f"B{tipoD_row}")
+# ---- gráfico de segmentos y secciones (se actualiza con los datos) ----------
+from openpyxl.chart.series import SeriesLabel, StrRef
+QC = 17  # columna Q: datos auxiliares del gráfico
+ds.cell(3, QC, "Datos del gráfico de segmentos (no editar)").font = fsmall
+gseg = [("X1 (eje izq.)", "0", N['X1'], N['X1']), ("X2 (cono)", N['X1'], N['xsI'], N['X2']),
+        ("Tubo", N['xsI'], N['xsD'], N['Xtu']), ("X3 (disco)", N['xsD'], N['xdD'], N['X3']),
+        ("X4 (eje der.)", N['xdD'], N['L'], N['X4'])]
+kcols = "BCD"
+gmark = [(f"S{j+1}", f"Datos!${kcols[j]}${conc_rows['kx']}", f"Datos!${kcols[j]}${conc_rows['kKt']}") for j in range(3)]
+gch = ScatterChart(); gch.title = "Segmentos y secciones de verificación"; gch.style = 13
+gch.height = 7.5; gch.width = 16.5
+gch.x_axis.title = "x [mm] (desde el extremo izquierdo)"; gch.x_axis.delete = False
+gch.y_axis.delete = True; gch.y_axis.scaling.min = -1.6; gch.y_axis.scaling.max = 1.6
+gch.y_axis.majorGridlines = None; gch.x_axis.majorGridlines = None; gch.legend.position = "r"
+gch.x_axis.crosses = "min"; gch.x_axis.number_format = "0"; gch.x_axis.scaling.min = 0
+grises = ["7F7F7F", "BFBFBF", "404040", "000000", "7F7F7F"]
+rq = 5
+for (nom, x0, x1, ln), col in zip(gseg, grises):
+    ds.cell(rq, QC, f'="{nom} = "&TEXT({ln},"0")&" mm"')
+    ds.cell(rq, QC + 1, f"={x0}"); ds.cell(rq, QC + 2, 0)
+    ds.cell(rq + 1, QC + 1, f"={x1}"); ds.cell(rq + 1, QC + 2, 0)
+    sr = Series(Reference(ds, min_col=QC + 2, min_row=rq, max_row=rq + 1), Reference(ds, min_col=QC + 1, min_row=rq, max_row=rq + 1))
+    sr.tx = SeriesLabel(strRef=StrRef(f"Datos!${get_column_letter(QC)}${rq}"))
+    sr.marker.symbol = "none"; sr.graphicalProperties.line.width = 90000; sr.graphicalProperties.line.solidFill = col
+    gch.series.append(sr); rq += 3
+for nom, xr, ktr in gmark:
+    ds.cell(rq, QC, f'="{nom}: x = "&TEXT({xr},"0")&" mm (Kt "&TEXT({ktr},"0.0")&")"')
+    ds.cell(rq, QC + 1, f"={xr}"); ds.cell(rq, QC + 2, -1.2)
+    ds.cell(rq + 1, QC + 1, f"={xr}"); ds.cell(rq + 1, QC + 2, 1.2)
+    sr = Series(Reference(ds, min_col=QC + 2, min_row=rq, max_row=rq + 1), Reference(ds, min_col=QC + 1, min_row=rq, max_row=rq + 1))
+    sr.tx = SeriesLabel(strRef=StrRef(f"Datos!${get_column_letter(QC)}${rq}"))
+    sr.marker.symbol = "none"; sr.graphicalProperties.line.width = 19050; sr.graphicalProperties.line.solidFill = "C00000"
+    sr.graphicalProperties.line.dashStyle = "dash"
+    gch.series.append(sr); rq += 3
+for nom, xr in (("Soldadura filete", N['xsI']), ("Soldadura al ras", N['xsD'])):
+    ds.cell(rq, QC, f'="{nom}: x = "&TEXT({xr},"0")&" mm"')
+    ds.cell(rq, QC + 1, f"={xr}"); ds.cell(rq, QC + 2, -0.8)
+    ds.cell(rq + 1, QC + 1, f"={xr}"); ds.cell(rq + 1, QC + 2, 0.8)
+    sr = Series(Reference(ds, min_col=QC + 2, min_row=rq, max_row=rq + 1), Reference(ds, min_col=QC + 1, min_row=rq, max_row=rq + 1))
+    sr.tx = SeriesLabel(strRef=StrRef(f"Datos!${get_column_letter(QC)}${rq}"))
+    sr.marker.symbol = "none"; sr.graphicalProperties.line.width = 12700; sr.graphicalProperties.line.solidFill = "000000"
+    sr.graphicalProperties.line.dashStyle = "sysDot"
+    gch.series.append(sr); rq += 3
+ds.add_chart(gch, "G3")
+ds["G18"] = ("Gráfico: segmentos X1..X4 y tubo (línea gruesa), secciones con concentrador S1..S3 (rojo) y soldaduras (punteado). "
+             "Se actualiza solo."); ds["G18"].font = fsmall
 img = Image("dcl.png"); img.width, img.height = 620, 434
-ds.add_image(img, "G3")
-ds["G26"] = "Diagrama de cuerpo libre (modelo simplemente apoyado). x se mide desde el apoyo izquierdo."; ds["G26"].font = fsmall
+ds.add_image(img, "G20")
+ds["G43"] = "Diagrama de cuerpo libre (modelo simplemente apoyado). x se mide desde el extremo izquierdo."; ds["G43"].font = fsmall
 
 # helper formula pieces (x given as a cell ref) -----------------------------
 L, a, b, w, cl, T0 = (N[k] for k in ("L", "a", "b", "w", "cl", "T0"))
@@ -298,7 +354,12 @@ def Vzf(x): return f"({N['R1z']}-" + "-".join(segV(x, *sg) for sg in ZSEG) + f"-
 def Mzf(x): return f"({N['R1z']}*{x}-" + "-".join(segM(x, *sg) for sg in ZSEG) + f"-{N['Fpz']}*MAX(0,{x}-{N['xp']}))"
 def Vf(x): return f"SQRT({Vyf(x)}^2+{Vzf(x)}^2)"
 def Mf(x): return f"SQRT({Myf(x)}^2+{Mzf(x)}^2)"
-def zsel(x, vI, vT, vD): return f"IF({x}<{N['xsI']},{vI},IF({x}<={N['xsD']},{vT},{vD}))"
+def zsel(x, vI, vT, vD):
+    """Zonas: muñón izq. | tubo | disco der. (X3) | eje der. (X4). El disco usa sus propiedades de sección
+    (macizo Ø D) y el material del muñón derecho; en el número de zona cuenta como zona 3."""
+    DISC = {N['ImD']: N['Idk'], N['cmD']: N['cdk'], N['QmD']: N['Qdk'], N['bmD']: N['bdk'], N['SemD']: N['Sedk']}
+    vK = DISC.get(vD, vD)
+    return f"IF({x}<{N['xsI']},{vI},IF({x}<={N['xsD']},{vT},IF({x}<{N['xdD']},{vK},{vD})))"
 def Tside(x, aa, bb):
     return f"IF({x}<={aa},{T0},IF({x}>={L}-{bb},0,{T0}*({L}-{bb}-{x})/{cl}))"
 def Tf(x):
