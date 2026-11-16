@@ -1,0 +1,92 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noshorthands]{babel}
+\usepackage{lmodern}
+\usepackage[margin=2.2cm,headheight=1.6cm,includehead]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs,tabularx,array}
+\usepackage{fancyhdr,lastpage}
+\usepackage[locale=DE,group-separator={.},group-minimum-digits=4,group-digits=integer]{siunitx}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+
+\input{datos.tex}
+
+% ---------------------------------------------------------------- encabezado
+\newcommand{\titulo}{Resumen de resultados -- Rullo delantero torno PSV}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\IfFileExists{figuras/logo_dayco.png}{\includegraphics[height=1.1cm]{figuras/logo_dayco.png}}{\textsf{DAYCO}}}
+\fancyhead[R]{\small\titulo}
+\fancyfoot[R]{\small Página \thepage\ de \pageref{LastPage}}
+\fancyfoot[L]{\small Datos: \vArchivo\ (\vFechaDatos)}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\newcommand{\supu}{\textsuperscript{*}}   % supuesto a validar
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries \titulo}\\[1mm]
+\small Detalle, fórmulas y supuestos en la memoria de cálculo (\texttt{memoria.pdf})
+\end{center}
+
+\ifnum\vgeomok=0
+\begin{center}\fbox{\parbox{0.9\textwidth}{\centering\textbf{ATENCIÓN:} el manchón no entra entre apoyos.
+Los resultados no tienen validez hasta corregir los datos.}}\end{center}
+\fi
+
+\begin{center}
+\includegraphics[width=0.9\textwidth]{figuras/esquema.pdf}
+\end{center}
+
+\textbf{CS mínimo por tramo} (sin concentrador, $K_f=1$). $x$ global: desde el extremo izquierdo;
+$x$ local: desde el inicio del tramo, de izquierda a derecha. Posiciones en mm.
+\begin{center}
+\begin{tabular}{lcccccc}
+\toprule
+ & \multicolumn{3}{c}{Fatiga (Goodman)} & \multicolumn{3}{c}{Fluencia} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Tramo & $CS$ & $x$ global & $x$ local & $CS$ & $x$ global & $x$ local \\
+\midrule
+$X_1$ eje izq.  & \vtrcsfuno    & \vtrxgfuno    & \vtrxlfuno    & \vtrcsluno    & \vtrxgluno    & \vtrxlluno \\
+$X_2$ cono\supu & \vtrcsfdos    & \vtrxgfdos    & \vtrxlfdos    & \vtrcsldos    & \vtrxgldos    & \vtrxlldos \\
+Tubo            & \vtrcsftres   & \vtrxgftres   & \vtrxlftres   & \vtrcsltres   & \vtrxgltres   & \vtrxlltres \\
+$X_3$ disco     & \vtrcsfcuatro & \vtrxgfcuatro & \vtrxlfcuatro & \vtrcslcuatro & \vtrxglcuatro & \vtrxllcuatro \\
+$X_4$ eje der.  & \vtrcsfcinco  & \vtrxgfcinco  & \vtrxlfcinco  & \vtrcslcinco  & \vtrxglcinco  & \vtrxllcinco \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Secciones con concentrador} ($K_f=1+q(K_t-1)$).
+\begin{center}
+\begin{tabular}{lccccccccl}
+\toprule
+Sección & $x$ [mm] & $K_t$ & $K_{ts}$ & $r$ [mm] & $K_f$ & $\sigma'_a$ & $\sigma'_m$ & $CS_{\text{fat}}$ & $CS_{\text{fl}}$ \\
+\midrule
+\vFilasConc
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Soldaduras.}
+\begin{center}
+\begin{tabular}{llccc}
+\toprule
+Soldadura & Tipo & $x$ [mm] & $CS_{\text{fat}}$ & $CS_{\text{fl}}$ \\
+\midrule
+Izquierda & \vstipoizq & \vsxizq & \vscsizq & \vsflizq \\
+Derecha   & \vstipoder & \vsxder & \vscsder & \vsflder \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Mínimos globales:} $CS_{\text{fatiga}}=\vcsg$, $CS_{\text{fluencia}}=\vflg$. Un $CS<1$ queda a criterio del diseñador\supu.
+
+{\small \supu\ Supuestos a validar: ver memoria de cálculo, sección Supuestos y limitaciones. $X_2$: cono modelado con el Ø del eje (conservativo).}
+
+\end{document}

@@ -13,6 +13,7 @@ Fuente de cálculo: *Compendio de Cálculo Estructural II*, FCEFyN-UNC 2024, cap
 | `scripts/` | `dcl.py`, `dcl.png` | Diagrama de cuerpo libre insertado en la planilla |
 
 | `memoria/` | `memoria.tex`, `memoria.pdf` | Memoria de cálculo en LaTeX, toma los valores de la planilla |
+| `memoria/` | `resumen.tex`, `resumen.pdf` | Resumen de una página: esquema, CS mínimo por tramo, secciones y soldaduras |
 | `memoria/` | `revisiones.tex` | Registro de revisiones (se completa a mano) |
 | `scripts/` | `exportar_datos.py` | Lee la planilla y escribe `memoria/datos.tex` y `memoria/figuras/diagramas.pdf` |
 

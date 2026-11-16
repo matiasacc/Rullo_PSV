@@ -45,11 +45,13 @@ jobs:
       - name: Compilar LaTeX
         uses: xu-cheng/latex-action@v3
         with:
-          root_file: memoria.tex
+          root_file: |
+            memoria.tex
+            resumen.tex
           working_directory: memoria
 
       - name: Subir PDF actualizado
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Memoria actualizada [skip ci]"
-          file_pattern: "memoria/memoria.pdf memoria/datos.tex memoria/figuras/diagramas.pdf"
+          file_pattern: "memoria/memoria.pdf memoria/resumen.pdf memoria/datos.tex memoria/figuras/diagramas.pdf"
