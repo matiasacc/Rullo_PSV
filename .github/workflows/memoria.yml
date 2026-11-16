@@ -22,10 +22,25 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Recalcular la planilla (LibreOffice, sin guardar en el repo)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libreoffice-calc-nogui > /dev/null
+          mkdir -p /tmp/lop/user /tmp/recalc
+          cat > /tmp/lop/user/registrymodifications.xcu <<'XCU'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <oor:items xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <item oor:path="/org.openoffice.Office.Calc/Formula/Load"><prop oor:name="OOXMLRecalcMode" oor:op="fuse"><value>0</value></prop></item>
+          </oor:items>
+          XCU
+          sed -i 's/^ *//' /tmp/lop/user/registrymodifications.xcu
+          soffice -env:UserInstallation=file:///tmp/lop --headless --convert-to xlsx:"Calc MS Excel 2007 XML" \
+            --outdir /tmp/recalc planilla/Rullo_PSV_estatico_fatiga.xlsx
+
       - name: Exportar datos de la planilla
         run: |
           pip install openpyxl matplotlib
-          python scripts/exportar_datos.py
+          python scripts/exportar_datos.py /tmp/recalc/Rullo_PSV_estatico_fatiga.xlsx
 
       - name: Compilar LaTeX
         uses: xu-cheng/latex-action@v3

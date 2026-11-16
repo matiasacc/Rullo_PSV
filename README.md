@@ -18,7 +18,7 @@ Fuente de cálculo: *Compendio de Cálculo Estructural II*, FCEFyN-UNC 2024, cap
 
 ## Actualizar la memoria
 
-1. Cambiar datos en la planilla y **guardarla desde Excel** (así quedan los valores calculados).
+1. Cambiar datos en la planilla y guardarla. (La acción de GitHub recalcula la planilla con LibreOffice antes de exportar, así que no hace falta que tenga los valores calculados.)
 2. Agregar una fila en `memoria/revisiones.tex` si el cambio es relevante.
 3. Subir los cambios (`git push`). La acción de GitHub *Memoria de cálculo* exporta los datos, compila el LaTeX y sube `memoria/memoria.pdf` actualizado.
 
