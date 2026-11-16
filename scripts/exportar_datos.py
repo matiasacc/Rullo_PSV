@@ -86,7 +86,7 @@ from matplotlib.patches import Rectangle, Polygon, FancyArrowPatch
 def val(n):
     hoja, ref = next(iter(wb.defined_names[n].destinations))
     return wb[hoja][ref.replace("$", "")].value
-g = {k: val(k) for k in ("vL", "vxsI", "vxsD", "vxgcero", "vLg", "vainicio", "vB", "vD", "vDextmI", "vDextmD", "veg", "vlado", "vLmI", "vLmD", "vswp", "vcp", "vDp")}
+g = {k: val(k) for k in ("vL", "vxsI", "vxsD", "vxgcero", "vLg", "vainicio", "vB", "vD", "vDextmI", "vDextmD", "veg", "vlado", "vLmI", "vLmD", "vswp", "vcp", "vDp", "vXuno", "vXdos", "vXtres", "vXcuatro")}
 cx = wb["Cálculo x"]
 col = lambda c: [cx[f"{c}{r}"].value for r in range(4, 205)]
 x, My, Mz, M, fl, cs = col("A"), col("E"), col("F"), col("G"), col("AC"), col("R")
@@ -101,43 +101,48 @@ def marcas(a):
 if None in x + M or None in g.values():
     faltan.append("Cálculo x / geometría")
 else:
-    # esquema a escala ------------------------------------------------------
+    # esquema (vista de frente, cotas X1..X4 de la hoja Datos) ---------------
     L, xsI, xsD, D = g["vL"], g["vxsI"], g["vxsD"], g["vD"]
-    fig, ax = plt.subplots(figsize=(6.6, 2.6))
-    ext = max(L * 0.12, 60)
-    hm_I, hm_D, eg = g["vDextmI"] / 2, g["vDextmD"] / 2, g["veg"]
-    ax.add_patch(Rectangle((-min(g["vLmI"] - xsI, ext), -hm_I), xsI + min(g["vLmI"] - xsI, ext), 2 * hm_I, fc="0.85", ec="k", lw=0.6))
-    ax.add_patch(Rectangle((xsD, -hm_D), (L - xsD) + min(g["vLmD"] - (L - xsD), ext), 2 * hm_D, fc="0.85", ec="k", lw=0.6))
-    ax.add_patch(Rectangle((xsI, -D / 2), xsD - xsI, D, fc="0.7", ec="k", lw=0.8))
+    X1, X2, X3, X4 = g["vXuno"], g["vXdos"], g["vXtres"], g["vXcuatro"]
+    rI, rD, eg = g["vDextmI"] / 2, g["vDextmD"] / 2, g["veg"]
+    fig, ax = plt.subplots(figsize=(6.6, 2.9))
+    ax.add_patch(Rectangle((0, -rI), X1, 2 * rI, fc="0.85", ec="k", lw=0.6))                       # eje izq.
+    ax.add_patch(Polygon([[X1, -rI], [xsI, -D / 2], [xsI, D / 2], [X1, rI]], closed=True, fc="0.85", ec="k", lw=0.6))  # cono
+    ax.add_patch(Rectangle((xsI, -D / 2), xsD - xsI, D, fc="0.7", ec="k", lw=0.8))                  # tubo
+    ax.add_patch(Rectangle((xsD, -D / 2), X3, D, fc="0.5", ec="k", lw=0.8))                         # disco
+    if X4 > 0:
+        ax.add_patch(Rectangle((xsD + X3, -rD), X4, 2 * rD, fc="0.85", ec="k", lw=0.6))             # eje der.
     x0g, Lg = g["vxgcero"], g["vLg"]
-    for sgn in (1, -1):
-        ax.add_patch(Rectangle((x0g, sgn * D / 2 if sgn > 0 else -D / 2 - eg), Lg, eg, fc="0.35", ec="k", lw=0.4))
+    for y0 in (D / 2, -D / 2 - eg):
+        ax.add_patch(Rectangle((x0g, y0), Lg, eg, fc="0.35", ec="k", lw=0.4))
     a0, B = g["vainicio"], g["vB"]
     ax.add_patch(Rectangle((a0, D / 2 + eg), B, D * 0.18, fc="none", ec="#C00000", hatch="////", lw=0.8))
-    ax.annotate("", xy=(a0 + B, D / 2 + eg + D * 0.3), xytext=(a0, D / 2 + eg + D * 0.3),
-                arrowprops=dict(arrowstyle="->", color="#C00000", lw=0.8))
-    ax.text(a0 + B / 2, D / 2 + eg + D * 0.36, "manchón (tope a la derecha)", ha="center", color="#C00000", fontsize=8)
-    for xa in (0, L):
-        h = (hm_I if xa == 0 else hm_D)
+    ax.plot([xsD, xsD], [D / 2 + eg, D / 2 + eg + D * 0.3], color="#C00000", lw=1.2)
+    ax.text(a0 + B / 2, D / 2 + eg + D * 0.24, "manchón (tope en el disco)", ha="center", color="#C00000", fontsize=8)
+    for xa, h in ((0, rI), (L, rD if X4 > 0 else D / 2)):
         ax.add_patch(Polygon([[xa, -h], [xa - L * 0.02, -h - D * 0.25], [xa + L * 0.02, -h - D * 0.25]], closed=True, fc="w", ec="k", lw=0.8))
-    ax.text(0, -hm_I - D * 0.42, "apoyo izq.", ha="center", fontsize=8); ax.text(L, -hm_D - D * 0.42, "apoyo der.", ha="center", fontsize=8)
+    ax.text(-L * 0.025, -rI - D * 0.1, "apoyo izq.", ha="right", fontsize=8)
+    ax.text(L + L * 0.025, -(rD if X4 > 0 else D / 2) - D * 0.1, "apoyo der.", ha="left", fontsize=8)
+    ax.text(xsI, D / 2 + eg + D * 0.05, "filete", ha="center", fontsize=7, color="0.3")
+    ax.text(xsD, D / 2 + eg + D * 0.05, "al ras", ha="right", fontsize=7, color="0.3")
     if g["vswp"] == 1:
         xp_, rp = L + g["vcp"], g["vDp"] / 2
         ax.add_patch(Rectangle((xp_ - L * 0.012, -rp), L * 0.024, 2 * rp, fc="w", ec="k", lw=0.8))
         ax.text(xp_, rp + D * 0.06, "polea", ha="center", fontsize=8)
-        ax.annotate("", xy=(xp_ - L * 0.06, -rp * 0.2), xytext=(xp_ - L * 0.06, rp * 0.2),
-                    arrowprops=dict(arrowstyle="<-", lw=0.6))
-        ext = max(ext, g["vcp"] + L * 0.04)
     else:
-        xm = L + min(g["vLmD"] - (L - xsD), ext)
-        ax.annotate("T (acople)", xy=(xm, 0), xytext=(xm + L * 0.08, D * 0.45), ha="center", fontsize=8,
+        ax.annotate("T", xy=(L, 0), xytext=(L + L * 0.06, D * 0.45), ha="center", fontsize=8,
                     arrowprops=dict(arrowstyle="->", lw=0.8))
-    for xv, t in ((xsI, "sold."), (xsD, "sold.")):
-        ax.text(xv, -D / 2 - eg - D * 0.12, t, ha="center", fontsize=7, color="0.3")
-    ax.annotate("", xy=(L, -D * 1.05), xytext=(0, -D * 1.05), arrowprops=dict(arrowstyle="<->", lw=0.6))
-    ax.text(L / 2, -D * 1.0, f"L = {L:.0f} mm", ha="center", fontsize=8)
-    ax.text(-ext, D * 0.9, "muñón izq.", fontsize=8); ax.text(L - ext * 0.2, D * 0.9, "muñón der.", fontsize=8, ha="center")
-    ax.set_xlim(-ext * 1.6, L + ext * 1.6); ax.set_ylim(-D * 1.15, D * 1.1); ax.set_aspect("auto"); ax.axis("off")
+    # cotas
+    def cota(x1, x2, y, t, fs=7):
+        ax.annotate("", xy=(x2, y), xytext=(x1, y), arrowprops=dict(arrowstyle="<->", lw=0.5))
+        ax.text((x1 + x2) / 2, y + D * 0.04, t, ha="center", fontsize=fs)
+    yc = -D / 2 - eg - D * 0.3
+    cota(0, X1, yc, "X1"); cota(X1, xsI, yc, "X2"); cota(xsI, xsD, yc, f"X_tubo = {xsD - xsI:.0f}")
+    cota(xsD, xsD + X3, yc, "X3")
+    if X4 > 0: cota(xsD + X3, L, yc, "X4")
+    cota(0, L, yc - D * 0.35, f"Dist. total = L = {L:.0f} mm", fs=8)
+    ext = max(L * 0.06, 40) + (g["vcp"] if g["vswp"] == 1 else 0)
+    ax.set_xlim(-ext * 2.2, L + ext * 2.2); ax.set_ylim(yc - D * 0.45, D / 2 + eg + D * 0.45); ax.set_aspect("auto"); ax.axis("off")
     fig.tight_layout(); fig.savefig(raiz / "memoria" / "figuras" / "esquema.pdf")
 
     fig, ax = plt.subplots(3, 1, figsize=(6.3, 6.6), sharex=True)

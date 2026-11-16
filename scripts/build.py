@@ -44,7 +44,16 @@ def der(name, label, formula, unit, note="", fmt="0.000"):
 sec("Geometría del tubo")
 inp("D", "Diámetro exterior D", 100, "mm")
 inp("t", "Espesor de pared t", 10, "mm")
-inp("L", "Distancia entre centros de rodamientos L", 1200, "mm", "Modelo: viga simplemente apoyada (ver hoja Fórmulas)")
+sec("Geometría longitudinal (ver esquema): x = 0 en el extremo izquierdo")
+inp("Dtot", "Distancia total (extremo izq. → extremo der.)", 1330, "mm",
+    "* Apoyos supuestos en los extremos: izq. en x = 0 (borde exterior del asiento, real ≈ X1/2) y der. en x = Dist. total. Conservativo")
+inp("X1", "X1: eje izquierdo Ø30 (asiento del rodamiento)", 40, "mm", "Sección crítica S1 en x = X1 (escalón eje → cono)")
+inp("X2", "X2: cono izquierdo (eje → diámetro exterior del tubo)", 40, "mm", "Misma pieza que X1. Soldadura de filete en x = X1 + X2")
+inp("X3", "X3: espesor del disco derecho", 20, "mm", "Disco soldado al ras con el tubo. Tope de las correas = inicio del disco")
+inp("X4", "X4: eje derecho, de la cara del disco al apoyo", 0, "mm",
+    "* PENDIENTE DE MEDICIÓN: cargar la cota superior (máximo posible). Más corto que el real queda del lado inseguro")
+der("L", "Distancia entre apoyos L = Distancia total", f"={N['Dtot']}", "mm", "Modelo: viga simplemente apoyada (ver hoja Fórmulas)", fmt="0.0")
+der("Xtu", "X_tubo = Dist. total - (X1 + X2 + X3 + X4)", f"={N['Dtot']}-({N['X1']}+{N['X2']}+{N['X3']}+{N['X4']})", "mm", "Debe dar > 0", fmt="0.0")
 sec("Engomado (recubrimiento del tubo)")
 inp("eg", "Espesor del engomado", 10, "mm", "* Solo suma peso y cambia el diámetro de apoyo del manchón; su rigidez se desprecia (E goma << E acero)")
 inp("rhog", "Densidad de la goma", 1.3e-6, "kg/mm³", "* Valor típico de caucho; reemplazar por el dato del compuesto")
@@ -56,7 +65,7 @@ inp("Lp", "Desarrollo de la correa", 1200, "mm")
 inp("fr", "Frecuencia medida (por correa)", 40, "Hz", "Ramal libre vibrando")
 inp("Ltin", "Largo libre del ramal Lt (0 = calcular)", 0, "mm",
     "* Si es 0: Lt = (desarrollo - π·D)/2, ramales paralelos y rullos de igual diámetro (línea primitiva ≈ D exterior)")
-inp("xtope", "Tope del manchón, lado derecho (motriz): x (0 = soldadura derecha)", 0, "mm",
+inp("xtope", "Tope del manchón, lado derecho (motriz): x (0 = inicio del disco = soldadura derecha)", 0, "mm",
     "Las correas entran desde la izquierda y hacen tope a la derecha: el manchón va de x_tope - B a x_tope")
 sec("Plano z (gravedad)")
 inp("pp", "Incluir peso propio (tubo, muñones y engomado) (1 = sí, 0 = no)", 1, "-", "Cada peso repartido en su propio tramo")
@@ -74,15 +83,15 @@ inp("eu", "Excentricidad de masa medida e (0 = usar e_per de G)", 0, "mm", "Para
 sec("Muñón izquierdo (apoyo libre)")
 inp("DmI", "Muñón izquierdo: diámetro (el menor de los escalones)", 30, "mm", "* Ø30 de 0 a 40 mm + cono de 40 a 80 mm: se modela cilindro Ø30 en todo el largo (conservativo)")
 inp("dmI", "Muñón izquierdo: diámetro interior (0 = macizo)", 0, "mm")
-inp("LmI", "Muñón izquierdo: largo total", 150, "mm", "Desde la soldadura izquierda hasta el extremo (incluye lo que queda fuera del apoyo)")
+der("LmI", "Muñón izquierdo: largo = X1 + X2", f"={N['X1']}+{N['X2']}", "mm", "Del apoyo izquierdo a la soldadura de filete", fmt="0.0")
 inp("SuMIin", "Muñón izquierdo: Su (0 = igual al tubo)", 0, "MPa")
 inp("SyMIin", "Muñón izquierdo: Sy (0 = igual al tubo)", 0, "MPa")
 inp("termMI", "Muñón izquierdo: terminación superficial", "Maquinado o estirado en frío", "-", "Lista: ec. (26)")
 termMI_row = r - 1
 sec("Muñón derecho (motriz)")
-inp("DmD", "Muñón derecho: diámetro (el menor de los escalones)", 30, "mm", "Eje que entra a la máquina (Ø igual al izquierdo)")
+inp("DmD", "Muñón derecho: diámetro del eje (X4)", 30, "mm", "Eje que entra a la máquina (Ø igual al izquierdo)")
 inp("dmD", "Muñón derecho: diámetro interior (0 = macizo)", 0, "mm")
-inp("LmD", "Muñón derecho: largo desde la soldadura derecha al centro del rodamiento derecho", 150, "mm", "* PENDIENTE DE MEDICIÓN: cargar la cota superior (máximo posible). Más corto que el real queda del lado inseguro")
+der("LmD", "Muñón derecho: largo = X3 + X4", f"={N['X3']}+{N['X4']}", "mm", "* Disco + eje modelados con el Ø del eje (conservativo: el disco es más rígido)", fmt="0.0")
 inp("SuMDin", "Muñón derecho: Su (0 = igual al tubo)", 0, "MPa")
 inp("SyMDin", "Muñón derecho: Sy (0 = igual al tubo)", 0, "MPa")
 inp("termMD", "Muñón derecho: terminación superficial", "Maquinado o estirado en frío", "-", "Lista: ec. (26)")
@@ -109,8 +118,8 @@ inp("swfl", "¿Aplicar Kf en la verificación a fluencia? (1 = sí, 0 = no)", 1,
     "* A DEFINIR entre ambos: ec. (3) dice que en dúctil estático no se usa Kt; ec. (77) toma σm+σa. 1 es lo conservativo")
 
 sec("Soldaduras tubo-muñón (extremos del tubo): a tope o filete")
-inp("xsI", "Posición x de la soldadura izquierda", 100, "mm", "Desde el apoyo izquierdo (centro del rodamiento). Entre 0 y L")
-inp("xsD", "Posición x de la soldadura derecha", 1100, "mm", "Desde el apoyo izquierdo. Entre 0 y L")
+der("xsI", "Posición x de la soldadura izquierda (filete) = X1 + X2", f"={N['X1']}+{N['X2']}", "mm", "Fin del cono, inicio del tubo", fmt="0.0")
+der("xsD", "Posición x de la soldadura derecha (al ras) = X1 + X2 + X_tubo", f"={N['xsI']}+{N['Xtu']}", "mm", "Fin del tubo, inicio del disco", fmt="0.0")
 inp("gar", "Garganta de la soldadura (0 = espesor del tubo t)", 0, "mm",
     "* Penetración parcial: anillo exterior de espesor = garganta (D a D - 2·garganta)")
 inp("elec", "Electrodo (AWS)", "E70xx", "-", "Lista: Shigley Tabla 9-3 (tabla en hoja Fórmulas)")
@@ -132,8 +141,8 @@ for j in range(1, 4): ds.cell(r, 1 + j, hdr[j]).font = fbold
 ds.cell(r, 5, "Nota").font = fbold
 r += 1
 conc_rows = {}
-conc_def = [("kx", "Posición x desde el apoyo izquierdo", [40, "=INDEX('Cálculo x'!$A$4:$A$204,MATCH(MAX('Cálculo x'!$G$4:$G$204),'Cálculo x'!$G$4:$G$204,0))", f"={N['xsD']}+1"], "mm",
-             "S1: Ø30 izq. (x = 40). S2: tubo, x de M máx. (automático). S3: Ø30 der., 1 mm después de la soldadura der. (automático)"),
+conc_def = [("kx", "Posición x desde el apoyo izquierdo", [f"={N['X1']}", "=INDEX('Cálculo x'!$A$4:$A$204,MATCH(MAX('Cálculo x'!$G$4:$G$204),'Cálculo x'!$G$4:$G$204,0))", f"={N['L']}-{N['X4']}"], "mm",
+             "Automático. S1: escalón Ø30 izq. (x = X1). S2: tubo, x de M máx. S3: eje der. en la cara del disco (x = L - X4)"),
             ("kon", "Activa (1 = sí, 0 = no)", [1, 1, 1], "-", ""),
             ("kKt", "Kt flexión (Anexo 2)", [2.7, 1.0, 2.7], "-", "* Ø30: Shigley Tabla 7-1, escalón agudo r/d = 0,02 (fuera del compendio; confirmar con Anexo 2). Escalón sobre cono: conservativo. Tubo: Kt = 1"),
             ("kKts", "Kts torsión (Anexo 2)", [2.2, 1.0, 2.2], "-", ""),
@@ -1114,7 +1123,7 @@ dmap = [("vD","D"),("vt","t"),("vL","L"),("vnb","nb"),("vbw","bw"),("vmb","mb"),
         ("vSep","Sep"),("vSe","Se"),("vVa","Va"),("vVc","Vc"),
         ("veg","eg"),("vrhog","rhog"),("vAg","Ag"),("vG","G"),("vmu","mu"),("vMrot","Mrot"),("vnc","nc"),("vrnc","rnc"),
         ("vFu","Fu"),("vrFu","rFu"),("vub","ub"),("vexc","ee"),("vwu","wu"),("veu","eu"),
-        ("vDextmI","DmI"),("vDintmI","dmI"),("vLmI","LmI"),("vDextmD","DmD"),("vDintmD","dmD"),("vLmD","LmD"),
+        ("vDtot","Dtot"),("vXuno","X1"),("vXdos","X2"),("vXtres","X3"),("vXcuatro","X4"),("vDextmI","DmI"),("vDintmI","dmI"),("vLmI","LmI"),("vDextmD","DmD"),("vDintmD","dmD"),("vLmD","LmD"),
         ("vxgcero","xg0"),("vLg","Lg"),("vAmI","AmI"),("vAmD","AmD"),("vLtubo","Ltu"),("vMeje","Meje"),("vMgoma","Mgoma"),
         ("vxG","xG"),("vxtp","xtp"),("vxtope","xtope"),("vwmI","wmI"),("vwmD","wmD"),("vwg","wg"),("vSemI","SemI"),("vSemD","SemD"),("vtermMI","termMI"),("vtermMD","termMD"),("vSuMI","SuMI"),("vSuMD","SuMD"),("vSyMI","SyMI"),("vSyMD","SyMD"),("vFp","Fp"),("vFpy","Fpy"),("vFpz","Fpz"),("vDp","Dp"),("vcp","cp"),("vKp","Kp"),("vthp","thp"),("vswp","swp"),("vMp","Mp"),("vgar","gar"),("vomega","om"),("veper","eper"),("vUper","Uper"),("vUperI","UperI"),("vUperD","UperD")]
 for ln, k in dmap:
@@ -1130,7 +1139,8 @@ for k_, suf in (("B", "izq"), ("C", "der")):
 for ln, k in [("vxsI","xsI"),("vxsD","xsD"),("velec","elec"),("vsobre","sobre"),("vwf","wf"),("vrf","rf")]:
     nm(ln, N[k])
 for k, lado in (("B", "izq"), ("C", "der")):
-    for ln, lab in [("sKf", "Kf adoptado"), ("sSe", "Se adoptado [MPa]"), ("ssa", "A: σ'a [MPa]"),
+    # (vskf y vsse ya definidos arriba: Excel no distingue mayúsculas, no duplicar como vsKf / vsSe)
+    for ln, lab in [("ssa", "A: σ'a [MPa]"),
                     ("ssm", "A: σ'm [MPa]"), ("scs", "CS fatiga adoptado"),
                     ("sfl", "CS fluencia adoptado"), ("svida", "Vida adoptada [ciclos]")]:
         nm(f"v{ln}{lado}", f"Soldadura!${k}${SR[lab]}")

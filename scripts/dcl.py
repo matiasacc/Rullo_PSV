@@ -17,15 +17,17 @@ def beam(ax, title, lab, wfull):
         xi=a+i*(e-a)/7
         ax.annotate("",xy=(xi,0.08),xytext=(xi,1.1),arrowprops=dict(arrowstyle="->",lw=0.9))
     ax.text((a+e)/2,1.3,"q"+lab+" en B = n · ancho",ha="center",fontsize=9)
-    if wfull: ax.text(5,-0.45,"pesos propios por tramo: muñones, tubo y engomado (opcional)",ha="center",fontsize=8,style="italic")
+    if wfull: ax.text(5,-0.6,"pesos propios por tramo: muñones, tubo y engomado (opcional)",ha="center",fontsize=8,style="italic")
     def dim(x1,x2,y,t):
         ax.annotate("",xy=(x1,y),xytext=(x2,y),arrowprops=dict(arrowstyle="<->",lw=0.8))
         ax.text((x1+x2)/2,y+0.12,t,ha="center",fontsize=9)
     dim(0,a,1.9,"a = x_tope - B"); dim(a,e,1.9,"B"); dim(e,10,1.9,"b")
-    ax.plot([e,e],[0.1,1.5],color="k",lw=2); ax.text(e+0.1,1.25,"tope",fontsize=8)
-    ax.add_patch(Polygon([[0,-0.08],[1.0,-0.08],[1.0,0.08],[0,0.08]],closed=True,fc="0.8",ec="k",lw=0.6))
-    ax.add_patch(Polygon([[9.0,-0.08],[10,-0.08],[10,0.08],[9.0,0.08]],closed=True,fc="0.8",ec="k",lw=0.6))
-    dim(0,10,-2.25,"L (entre centros de rodamientos)")
+    ax.plot([e,e],[0.1,1.5],color="k",lw=2); ax.text(e+0.1,1.25,"tope = disco",fontsize=8)
+    # zonas: X1 eje | X2 cono | tubo | X3 disco | X4 eje
+    for x1,x2,t in ((0,0.5,"X1"),(0.5,1.0,"X2"),(8.6,9.2,"X3"),(9.2,10,"X4")):
+        ax.add_patch(Polygon([[x1,-0.08],[x2,-0.08],[x2,0.08],[x1,0.08]],closed=True,fc="0.8",ec="k",lw=0.6))
+        ax.text((x1+x2)/2,-0.32,t,ha="center",fontsize=7)
+    dim(0,10,-2.25,"L = distancia total (apoyos supuestos en los extremos)")
     ax.text(-1.2,0.1,"x →",fontsize=9)
 beam(axs[0],"Plano y: tensión del manchón  (qy = 2·n·T / B)","y",False)
 beam(axs[1],"Plano z: gravedad  (peso propio + ½ peso del manchón)","z",True)
