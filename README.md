@@ -45,7 +45,7 @@ Para regenerar la planilla desde cero (borra los datos cargados): `cd scripts &&
 1. **Datos**: geometría (Dist. total, X1…X4; el gráfico de segmentos muestra tramos, secciones S1–S3, soldaduras y ▲/◆ en el punto más crítico a fatiga/fluencia), manchón (cantidad, ancho, masa, desarrollo, frecuencia, inicio a), pesos, torque, material, terminación.
 2. **Concentradores** (en Datos): posición x, Kt y Kts (Anexo 2) y radio r de cada escalón o chavetero.
 3. Revisar el equilibrio (control = 0) y que `b ≥ 0`.
-4. **Resultados**: CS de fatiga y de fluencia, reacciones en rodamientos, flecha.
+4. **Resultados**: CS de fatiga y de fluencia (eje completo y mínimo con su x en cada tramo X1, X2, tubo, X3, X4), reacciones en rodamientos, flecha.
 5. **Tensores**: tensor medio, alternante y máximo en los puntos A (fibra extrema) y B (eje neutro).
 6. Si CS de fatiga < 1: vida limitada en ciclos y horas (hoja Concentradores).
 7. **Soldaduras** (en Datos): tipo de cada lado (a tope / filete), posición x, electrodo (lista); a tope: garganta y sobremonta; filete: cateto w y radio del cordón. Resultado en las filas *adoptado* de la hoja **Soldadura** y en Resultados.

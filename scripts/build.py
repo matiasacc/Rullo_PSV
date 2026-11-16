@@ -383,8 +383,10 @@ heads = ["x [mm]", "Vy [N]", "Vz [N]", "V = √(Vy²+Vz²) [N]", "My [N·mm]", "
          "Mz/EI [1/mm]", "∫ Mz/EI", "∫∫ Mz/EI", "Flecha z [mm]", "Flecha total [mm]",
          "Vu desbalanceo [N]", "Mu desbalanceo [N·mm]", "σm desbalanceo [MPa]", "τm desbalanceo (corte) [MPa]",
          "Zona (1 muñón izq, 2 tubo, 3 muñón der)", "I [mm⁴]", "J [mm⁴]", "c [mm]", "Q [mm³]", "b [mm]", "Se [MPa]", "Su [MPa]", "Sy [MPa]",
-         "CS fat. muñón izq", "CS fat. tubo", "CS fat. muñón der", "CS fl. muñón izq", "CS fl. tubo", "CS fl. muñón der"]
-cs["A1"] = ("EJE COMPLETO ENTRE APOYOS (Kf = 1): muñón izq. | tubo | muñón der. Sección y material según la zona. "
+         "Tramo (1 X1, 2 X2, 3 tubo, 4 X3, 5 X4)",
+         "CS fat. X1", "CS fat. X2", "CS fat. tubo", "CS fat. X3", "CS fat. X4",
+         "CS fl. X1", "CS fl. X2", "CS fl. tubo", "CS fl. X3", "CS fl. X4"]
+cs["A1"] = ("EJE COMPLETO ENTRE APOYOS (Kf = 1): X1 | X2 | tubo | X3 | X4. Sección y material según la zona. "
             "Concentradores en hoja 'Concentradores'. A = fibra extrema, B = eje neutro. y: tensión del manchón, z: gravedad"); cs["A1"].font = fbold
 for j, h in enumerate(heads):
     c = cs.cell(3, 1 + j, h); c.font = fbold; c.fill = grey; c.alignment = Alignment(wrap_text=True, horizontal="center")
@@ -392,7 +394,7 @@ for j, h in enumerate(heads):
 cs.row_dimensions[3].height = 42
 NSEG = 200; r0 = 4; rN = r0 + NSEG
 Se, Su, Sy, I, J, c_, Q, bs, E = (N[k] for k in ("Se", "Su", "Sy", "I", "J", "c", "Q", "bs", "E"))
-fmts = ["0.0", "#,##0", "#,##0", "#,##0", "#,##0", "#,##0", "#,##0", "#,##0"] + ["0.00"] * 12 + ["0.00E+00"] * 3 + ["0.0000"] + ["0.00E+00"] * 3 + ["0.0000", "0.0000", "0.00", "0.0", "0.000", "0.000", "0", "#,##0", "#,##0", "0.0", "#,##0", "0.0", "0.0", "0", "0", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"]
+fmts = ["0.0", "#,##0", "#,##0", "#,##0", "#,##0", "#,##0", "#,##0", "#,##0"] + ["0.00"] * 12 + ["0.00E+00"] * 3 + ["0.0000"] + ["0.00E+00"] * 3 + ["0.0000", "0.0000", "0.00", "0.0", "0.000", "0.000", "0", "#,##0", "#,##0", "0.0", "#,##0", "0.0", "0.0", "0", "0", "0"] + ["0.00"] * 10
 for i in range(NSEG + 1):
     rr = r0 + i; x = f"A{rr}"
     F_ = {}
@@ -434,8 +436,10 @@ for i in range(NSEG + 1):
     F_["AN"] = "=" + zsel(x, N['SemI'], Se, N['SemD'])
     F_["AO"] = "=" + zsel(x, N['SuMI'], Su, N['SuMD'])
     F_["AP"] = "=" + zsel(x, N['SyMI'], Sy, N['SyMD'])
-    for cc_, srcc, zz in (("AQ", "R", 1), ("AR", "R", 2), ("AS", "R", 3), ("AT", "T", 1), ("AU", "T", 2), ("AV", "T", 3)):
-        F_[cc_] = f"=IF(AH{rr}={zz},{srcc}{rr},9999)"
+    F_["AQ"] = (f"=IF({x}<{N['X1']},1,IF({x}<{N['xsI']},2,IF({x}<={N['xsD']},3,IF({x}<{N['xdD']},4,5))))")
+    for t_ in range(5):
+        F_[get_column_letter(44 + t_)] = f"=IF(AQ{rr}={t_+1},R{rr},9999)"   # AR..AV: CS fatiga por tramo
+        F_[get_column_letter(49 + t_)] = f"=IF(AQ{rr}={t_+1},T{rr},9999)"   # AW..BA: CS fluencia por tramo
     for j in range(len(heads)):
         col = get_column_letter(j + 1)
         cell = cs[f"{col}{rr}"]; cell.value = F_[col]; cell.font = fb; cell.number_format = fmts[j]
@@ -871,15 +875,18 @@ rline("fC", "fC (carga)", f"={N['fC']}", "-", "Ec. (24)", "0.000")
 rline("f1", "f1 (otros)", f"={N['f1']}", "-", "Ec. (20)", "0.000")
 rline("Sep", "Se' probeta", f"={N['Sep']}", "MPa", "Ec. (17)", "0.0")
 rline("Se", "Se pieza", f"={N['Se']}", "MPa", "Ec. (20)", "0.0")
-rsec("Cuerpo del tubo (sin concentrador)")
+rsec("Eje completo (sin concentrador, Kf = 1): todo x de 0 a L")
 rline("csb", "CS fatiga Goodman mínimo", f"=MIN({rng('R')})", "-", "Ec. (44)-b")
 rline("xcsb", "Posición", f"=INDEX({rng('A')},MATCH(MIN({rng('R')}),{rng('R')},0))", "mm", fmt="0.0")
 rline("flb", "CS fluencia mínimo", f"=MIN({rng('T')})", "-", "Ec. (77)")
-rsec("Por zona (sin concentrador, Kf = 1): CS mínimo y posición")
-for zc, zf, lab_ in (("AQ", "AT", "Muñón izquierdo"), ("AR", "AU", "Tubo"), ("AS", "AV", "Muñón derecho")):
-    rline(f"z{zc}", f"{lab_}: CS fatiga mínimo / x", f"=MIN({rng(zc)})", "-", "Columna C: posición x [mm]")
-    rs.cell(rr - 1, 3).value = f"=INDEX({rng('A')},MATCH(MIN({rng(zc)}),{rng(zc)},0))"; rs.cell(rr - 1, 3).number_format = "0"
-    rline(f"z{zf}", f"{lab_}: CS fluencia mínimo", f"=MIN({rng(zf)})", "-")
+rsec("Por tramo (sin concentrador, Kf = 1): CS mínimo y posición x [mm] (desde el extremo izquierdo)")
+for t_, lab_ in enumerate(["X1 (eje izq.)", "X2 (cono)*", "Tubo", "X3 (disco)", "X4 (eje der.)"]):
+    cf, cl_ = get_column_letter(44 + t_), get_column_letter(49 + t_)
+    rline(f"tf{t_}", f"{lab_}: CS fatiga mínimo / x", f"=MIN({rng(cf)})", "-",
+          "Columna C: posición x. * Cono modelado con el Ø del eje (conservativo)" if t_ == 1 else "Columna C: posición x [mm]")
+    rs.cell(rr - 1, 3).value = f"=IF(MIN({rng(cf)})>=9999,\"-\",INDEX({rng('A')},MATCH(MIN({rng(cf)}),{rng(cf)},0)))"; rs.cell(rr - 1, 3).number_format = "0"
+    rline(f"tl{t_}", f"{lab_}: CS fluencia mínimo / x", f"=MIN({rng(cl_)})", "-", "Columna C: posición x [mm]")
+    rs.cell(rr - 1, 3).value = f"=IF(MIN({rng(cl_)})>=9999,\"-\",INDEX({rng('A')},MATCH(MIN({rng(cl_)}),{rng(cl_)},0)))"; rs.cell(rr - 1, 3).number_format = "0"
 rsec("Secciones con concentrador")
 for j, k in enumerate("BCD"):
     rline(f"cs{j}", f"Sección {j+1}: CS fatiga Goodman",
@@ -950,7 +957,7 @@ pick = lambda col: f"INDEX({rng(col)},{idx})"
 r_ = 4
 ts.cell(r_, 1, "Cuerpo: posición crítica x [mm] =").font = fb
 ts.cell(r_, 5, "=" + pick("A")).number_format = "0.0"
-r_ = block(r_ + 1, "Cuerpo del tubo, sección crítica a fatiga (Kf = 1)", pick("I"), pick("J"), pick("K"),
+r_ = block(r_ + 1, "Eje completo, sección crítica a fatiga (Kf = 1)", pick("I"), pick("J"), pick("K"),
            pick("I"), pick("K"), "Kf = 1 (tubo entero). Valores tomados de la fila de CS mínimo de la hoja 'Cálculo x'",
            pick("AF"), f"({pick('J')}+{pick('AG')})")
 # body life
