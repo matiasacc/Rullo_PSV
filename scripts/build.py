@@ -879,14 +879,23 @@ rsec("Eje completo (sin concentrador, Kf = 1): todo x de 0 a L")
 rline("csb", "CS fatiga Goodman mínimo", f"=MIN({rng('R')})", "-", "Ec. (44)-b")
 rline("xcsb", "Posición", f"=INDEX({rng('A')},MATCH(MIN({rng('R')}),{rng('R')},0))", "mm", fmt="0.0")
 rline("flb", "CS fluencia mínimo", f"=MIN({rng('T')})", "-", "Ec. (77)")
-rsec("Por tramo (sin concentrador, Kf = 1): CS mínimo y posición x [mm] (desde el extremo izquierdo)")
+rsec("Por tramo (sin concentrador, Kf = 1): CS mínimo y posición")
+for j_, h_ in enumerate(["Tramo", "CS mínimo", "x global [mm]", "x local [mm]", "Nota"]):
+    rs.cell(rr, 1 + j_, h_).font = fbold
+rs.cell(rr + 1, 3, "desde el extremo izq.").font = fsmall
+rs.cell(rr + 1, 4, "desde el inicio del tramo, de izquierda a derecha").font = fsmall
+rr += 2
+_ini = ["0", N['X1'], N['xsI'], N['xsD'], N['xdD']]
 for t_, lab_ in enumerate(["X1 (eje izq.)", "X2 (cono)*", "Tubo", "X3 (disco)", "X4 (eje der.)"]):
     cf, cl_ = get_column_letter(44 + t_), get_column_letter(49 + t_)
-    rline(f"tf{t_}", f"{lab_}: CS fatiga mínimo / x", f"=MIN({rng(cf)})", "-",
-          "Columna C: posición x. * Cono modelado con el Ø del eje (conservativo)" if t_ == 1 else "Columna C: posición x [mm]")
-    rs.cell(rr - 1, 3).value = f"=IF(MIN({rng(cf)})>=9999,\"-\",INDEX({rng('A')},MATCH(MIN({rng(cf)}),{rng(cf)},0)))"; rs.cell(rr - 1, 3).number_format = "0"
-    rline(f"tl{t_}", f"{lab_}: CS fluencia mínimo / x", f"=MIN({rng(cl_)})", "-", "Columna C: posición x [mm]")
-    rs.cell(rr - 1, 3).value = f"=IF(MIN({rng(cl_)})>=9999,\"-\",INDEX({rng('A')},MATCH(MIN({rng(cl_)}),{rng(cl_)},0)))"; rs.cell(rr - 1, 3).number_format = "0"
+    for key_, col_, tipo_ in ((f"tf{t_}", cf, "fatiga"), (f"tl{t_}", cl_, "fluencia")):
+        nota_ = "* Cono modelado con el Ø del eje (conservativo)" if (t_ == 1 and tipo_ == "fatiga") else ""
+        rline(key_, f"{lab_}: CS {tipo_} mínimo", f"=MIN({rng(col_)})", "")
+        xg_ = f"INDEX({rng('A')},MATCH(MIN({rng(col_)}),{rng(col_)},0))"
+        rs.cell(rr - 1, 3).value = f"=IF(MIN({rng(col_)})>=9999,\"-\",{xg_})"; rs.cell(rr - 1, 3).number_format = "0"
+        rs.cell(rr - 1, 4).value = f"=IF(MIN({rng(col_)})>=9999,\"-\",{xg_}-{_ini[t_]})"; rs.cell(rr - 1, 4).number_format = "0"
+        rs.cell(rr - 1, 4).font = fb; rs.cell(rr - 1, 4).alignment = Alignment(horizontal="right")
+        rs.cell(rr - 1, 5, nota_).font = fsmall
 rsec("Secciones con concentrador")
 for j, k in enumerate("BCD"):
     rline(f"cs{j}", f"Sección {j+1}: CS fatiga Goodman",
