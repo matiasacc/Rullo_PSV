@@ -33,7 +33,7 @@ Para regenerar la planilla desde cero (borra los datos cargados): `cd scripts &&
 - Viga simplemente apoyada, apoyos en los extremos (conservativo).
 - Geometría longitudinal en un solo bloque de Datos (x = 0 en el extremo izquierdo):
   `X1` eje izq. Ø30 | `X2` cono (misma pieza) | soldadura filete | tubo | soldadura al ras = tope de las correas | `X3` disco | `X4` eje motriz.
-  Se cargan **Dist. total, X1, X2, X3, X4**; `X_tubo = Dist. total − (X1+X2+X3+X4)`, `L = Dist. total` y las posiciones de soldaduras y secciones salen solas.
+  Se cargan **Largo de la pieza (X1+X2+X_tubo+X3), X1, X2, X3, X4**; `X_tubo = Largo − (X1+X2+X3)`, `L = Dist. total = Largo + X4` y las posiciones de soldaduras y secciones salen solas.
 - Ejes: **x** a lo largo del rullo (desde el extremo izquierdo), **y** dirección de la tensión del manchón, **z** gravedad.
 - Plano y: manchón como carga distribuida `qy = 2·n·T / B` entre `x = a` y `x = a + B`, con `B = n · ancho de correa`.
 - Plano z: peso propio del tubo (todo L) y mitad del peso del manchón en B (opcionales).
@@ -42,7 +42,7 @@ Para regenerar la planilla desde cero (borra los datos cargados): `cd scripts &&
 
 ## Esquema de uso
 
-1. **Datos**: geometría (Dist. total, X1…X4; el gráfico de segmentos muestra tramos, secciones S1–S3 y soldaduras), manchón (cantidad, ancho, masa, desarrollo, frecuencia, inicio a), pesos, torque, material, terminación.
+1. **Datos**: geometría (Dist. total, X1…X4; el gráfico de segmentos muestra tramos, secciones S1–S3, soldaduras y ▲/◆ en el punto más crítico a fatiga/fluencia), manchón (cantidad, ancho, masa, desarrollo, frecuencia, inicio a), pesos, torque, material, terminación.
 2. **Concentradores** (en Datos): posición x, Kt y Kts (Anexo 2) y radio r de cada escalón o chavetero.
 3. Revisar el equilibrio (control = 0) y que `b ≥ 0`.
 4. **Resultados**: CS de fatiga y de fluencia, reacciones en rodamientos, flecha.
@@ -70,7 +70,7 @@ Para regenerar la planilla desde cero (borra los datos cargados): `cd scripts &&
 - Torque: entra por un extremo y lo toman las correas de forma pareja en B; constante en el tiempo.
 - Apoyo izquierdo en x = 0, borde exterior del asiento (real ≈ X1/2): conservativo.
 - Apoyo derecho al final de X4. **X4 pendiente de medición**: se carga la cota superior (más corta que la real es inseguro).
-- Disco (X3) macizo de Ø D (igual al tubo), con material y terminación del muñón derecho; eje derecho (X4) con su Ø.
+- Disco (X3) macizo, Ø como dato (0 = D del tubo), con material y terminación del muñón derecho; eje derecho (X4) con su Ø.
 - Muñón izquierdo (Ø30 de 0 a 40 mm + cono de 40 a 80 mm) modelado como cilindro Ø30 en todo el largo: conservativo. Cerca de x = 80 el CS del cuerpo sale bajo por este supuesto.
 - Kt de los escalones Ø30: Shigley Tabla 7-1, escalón agudo r/d = 0,02 (Kt = 2,7; Kts = 2,2). Fuera del compendio: confirmar con el Anexo 2. Aplicado sobre una transición cónica: conservativo.
 - Kfs aplicado al corte transversal en el eje neutro (conservativo).

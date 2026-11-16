@@ -27,7 +27,7 @@ def beam(ax, title, lab, wfull):
     for x1,x2,t in ((0,0.5,"X1"),(0.5,1.0,"X2"),(8.6,9.2,"X3"),(9.2,10,"X4")):
         ax.add_patch(Polygon([[x1,-0.08],[x2,-0.08],[x2,0.08],[x1,0.08]],closed=True,fc="0.8",ec="k",lw=0.6))
         ax.text((x1+x2)/2,-0.32,t,ha="center",fontsize=7)
-    dim(0,10,-2.25,"L = distancia total (apoyos supuestos en los extremos)")
+    dim(0,10,-2.25,"L = distancia total = largo de la pieza + X4 (apoyos supuestos en los extremos)")
     ax.text(-1.2,0.1,"x →",fontsize=9)
 beam(axs[0],"Plano y: tensión del manchón  (qy = 2·n·T / B)","y",False)
 beam(axs[1],"Plano z: gravedad  (peso propio + ½ peso del manchón)","z",True)

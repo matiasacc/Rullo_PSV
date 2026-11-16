@@ -86,7 +86,7 @@ from matplotlib.patches import Rectangle, Polygon, FancyArrowPatch
 def val(n):
     hoja, ref = next(iter(wb.defined_names[n].destinations))
     return wb[hoja][ref.replace("$", "")].value
-g = {k: val(k) for k in ("vL", "vxsI", "vxsD", "vxgcero", "vLg", "vainicio", "vB", "vD", "vDextmI", "vDextmD", "veg", "vlado", "vLmI", "vLmD", "vswp", "vcp", "vDp", "vXuno", "vXdos", "vXtres", "vXcuatro")}
+g = {k: val(k) for k in ("vL", "vxsI", "vxsD", "vxgcero", "vLg", "vainicio", "vB", "vD", "vDextmI", "vDextmD", "veg", "vlado", "vLmI", "vLmD", "vswp", "vcp", "vDp", "vXuno", "vXdos", "vXtres", "vXcuatro", "vDdisco")}
 cx = wb["Cálculo x"]
 col = lambda c: [cx[f"{c}{r}"].value for r in range(4, 205)]
 x, My, Mz, M, fl, cs = col("A"), col("E"), col("F"), col("G"), col("AC"), col("R")
@@ -109,7 +109,8 @@ else:
     ax.add_patch(Rectangle((0, -rI), X1, 2 * rI, fc="0.85", ec="k", lw=0.6))                       # eje izq.
     ax.add_patch(Polygon([[X1, -rI], [xsI, -D / 2], [xsI, D / 2], [X1, rI]], closed=True, fc="0.85", ec="k", lw=0.6))  # cono
     ax.add_patch(Rectangle((xsI, -D / 2), xsD - xsI, D, fc="0.7", ec="k", lw=0.8))                  # tubo
-    ax.add_patch(Rectangle((xsD, -D / 2), X3, D, fc="0.5", ec="k", lw=0.8))                         # disco
+    Dd = g["vDdisco"]
+    ax.add_patch(Rectangle((xsD, -Dd / 2), X3, Dd, fc="0.5", ec="k", lw=0.8))                       # disco
     if X4 > 0:
         ax.add_patch(Rectangle((xsD + X3, -rD), X4, 2 * rD, fc="0.85", ec="k", lw=0.6))             # eje der.
     x0g, Lg = g["vxgcero"], g["vLg"]

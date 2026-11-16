@@ -46,15 +46,18 @@ sec("Geometría del tubo")
 inp("D", "Diámetro exterior D", 100, "mm")
 inp("t", "Espesor de pared t", 10, "mm")
 sec("Geometría longitudinal (ver esquema): x = 0 en el extremo izquierdo")
-inp("Dtot", "Distancia total (extremo izq. → extremo der.)", 1330, "mm",
-    "* Apoyos supuestos en los extremos: izq. en x = 0 (borde exterior del asiento, real ≈ X1/2) y der. en x = Dist. total. Conservativo")
+inp("Lpz", "Largo de la pieza X1 + X2 + X_tubo + X3 (sin X4)", 1330, "mm", "Medida del rullo de extremo a extremo; el eje X4 es aparte")
 inp("X1", "X1: eje izquierdo Ø30 (asiento del rodamiento)", 40, "mm", "Sección crítica S1 en x = X1 (escalón eje → cono)")
 inp("X2", "X2: cono izquierdo (eje → diámetro exterior del tubo)", 40, "mm", "Misma pieza que X1. Soldadura de filete en x = X1 + X2")
 inp("X3", "X3: espesor del disco derecho", 20, "mm", "Disco soldado al ras con el tubo. Tope de las correas = inicio del disco")
+inp("Ddk", "Ø del disco derecho (0 = D exterior del tubo)", 0, "mm", "Disco macizo")
 inp("X4", "X4: eje derecho, de la cara del disco al apoyo", 0, "mm",
     "* PENDIENTE DE MEDICIÓN: cargar la cota superior (máximo posible). Más corto que el real queda del lado inseguro")
+der("Dtot", "Distancia total = Largo de la pieza + X4", f"={N['Lpz']}+{N['X4']}", "mm",
+    "* Apoyos supuestos en los extremos: izq. en x = 0 (borde exterior del asiento, real ≈ X1/2) y der. en x = Dist. total. Conservativo", fmt="0.0")
+der("Ddku", "Ø del disco usado", f"=IF({N['Ddk']}>0,{N['Ddk']},{N['D']})", "mm", fmt="0.0")
 der("L", "Distancia entre apoyos L = Distancia total", f"={N['Dtot']}", "mm", "Modelo: viga simplemente apoyada (ver hoja Fórmulas)", fmt="0.0")
-der("Xtu", "X_tubo = Dist. total - (X1 + X2 + X3 + X4)", f"={N['Dtot']}-({N['X1']}+{N['X2']}+{N['X3']}+{N['X4']})", "mm", "Debe dar > 0", fmt="0.0")
+der("Xtu", "X_tubo = Largo de la pieza - (X1 + X2 + X3)", f"={N['Lpz']}-({N['X1']}+{N['X2']}+{N['X3']})", "mm", "Debe dar > 0", fmt="0.0")
 sec("Engomado (recubrimiento del tubo)")
 inp("eg", "Espesor del engomado", 10, "mm", "* Solo suma peso y cambia el diámetro de apoyo del manchón; su rigidez se desprecia (E goma << E acero)")
 inp("rhog", "Densidad de la goma", 1.3e-6, "kg/mm³", "* Valor típico de caucho; reemplazar por el dato del compuesto")
@@ -217,7 +220,7 @@ der("Mp", "Momento en el rodamiento derecho por la transmisión M = F·c", f"={N
 der("wmI", "Peso muñón izquierdo ρ·g·A_mI (tramo 0 → x sold. izq.)", f"={N['pp']}*{N['rho']}*9.81*{N['AmI']}", "N/mm", fmt="0.0000")
 der("w", "Peso tubo ρ·g·A (tramo entre soldaduras)", f"={N['pp']}*{N['rho']}*9.81*{N['A']}", "N/mm", fmt="0.0000")
 der("wmD", "Peso eje derecho ρ·g·A_mD (tramo X4: fin del disco → L)", f"={N['pp']}*{N['rho']}*9.81*{N['AmD']}", "N/mm", fmt="0.0000")
-der("Adk", "Disco derecho: área π/4·D² (macizo, Ø = D exterior del tubo)", f"=PI()/4*{N['D']}^2", "mm²", fmt="0.0")
+der("Adk", "Disco derecho: área π/4·Dd² (macizo)", f"=PI()/4*{N['Ddku']}^2", "mm²", fmt="0.0")
 der("wdk", "Peso disco derecho ρ·g·A_disco (tramo X3)", f"={N['pp']}*{N['rho']}*9.81*{N['Adk']}", "N/mm", fmt="0.0000")
 der("xdD", "Fin del disco x = soldadura der. + X3", f"={N['xsD']}+{N['X3']}", "mm", "Cara del disco donde arranca el eje derecho", fmt="0.0")
 der("wg", "Peso engomado ρg·g·Ag (tramo del engomado)", f"={N['pp']}*{N['rhog']}*9.81*{N['Ag']}", "N/mm",
@@ -254,11 +257,11 @@ for sfx, lado_ in (("I", "izquierdo"), ("D", "derecho")):
     der(f"safM{sfx}", f"Muñón {lado_}: √α Neuber flexión", f"=1.24-0.00225*{N['SuM'+sfx]}+1.6E-6*{N['SuM'+sfx]}^2-4.1E-10*{N['SuM'+sfx]}^3", "√mm", "Ec. (10)-a", fmt="0.0000")
     der(f"satM{sfx}", f"Muñón {lado_}: √α Neuber torsión", f"=0.958-0.001834*{N['SuM'+sfx]}+1.43E-6*{N['SuM'+sfx]}^2-4.1E-10*{N['SuM'+sfx]}^3", "√mm", "Ec. (10)-b", fmt="0.0000")
 # disco derecho: macizo Ø D, material y terminación del muñón derecho
-der("Idk", "Disco derecho: I = π/64·D⁴", f"=PI()/64*{N['D']}^4", "mm⁴", "* Material y terminación del muñón derecho", fmt="#,##0")
-der("cdk", "Disco derecho: c = D/2", f"={N['D']}/2", "mm", fmt="0.0")
-der("Qdk", "Disco derecho: Q = ⅔·R³", f"=2/3*({N['D']}/2)^3", "mm³", fmt="#,##0")
-der("bdk", "Disco derecho: b = D", f"={N['D']}", "mm", fmt="0.0")
-der("Sedk", "Disco derecho: Se = fS·fT·fC·f1·mín(0,5·Su ; 690)", f"={N['fSmD']}*" + _ft(N['D']) + f"*{N['f1']}*MIN(0.5*{N['SuMD']},690)", "MPa", "Ec. (20) con fT de D", fmt="0.0")
+der("Idk", "Disco derecho: I = π/64·Dd⁴", f"=PI()/64*{N['Ddku']}^4", "mm⁴", "* Material y terminación del muñón derecho", fmt="#,##0")
+der("cdk", "Disco derecho: c = Dd/2", f"={N['Ddku']}/2", "mm", fmt="0.0")
+der("Qdk", "Disco derecho: Q = ⅔·R³", f"=2/3*({N['Ddku']}/2)^3", "mm³", fmt="#,##0")
+der("bdk", "Disco derecho: b = Dd", f"={N['Ddku']}", "mm", fmt="0.0")
+der("Sedk", "Disco derecho: Se = fS·fT·fC·f1·mín(0,5·Su ; 690)", f"={N['fSmD']}*" + _ft(N['Ddku']) + f"*{N['f1']}*MIN(0.5*{N['SuMD']},690)", "MPa", "Ec. (20) con fT de Dd", fmt="0.0")
 der("Meje", "Masa del eje M_eje = ρ·(A·L_tubo + A_mI·L_mI + A_disco·X3 + A_mD·X4)",
     f"={N['rho']}*({N['A']}*{N['Ltu']}+{N['AmI']}*{N['LmI']}+{N['Adk']}*{N['X3']}+{N['AmD']}*{N['X4']})", "kg", fmt="0.00")
 der("Mgoma", "Masa del engomado M_goma = ρg·Ag·L_g", f"={N['rhog']}*{N['Ag']}*{N['Lg']}", "kg", fmt="0.00")
@@ -1171,6 +1174,38 @@ for k, v in lines:
 for wsx in wb.worksheets:
     wsx.sheet_view.showGridLines = wsx.title in ("Cálculo x",)
 
+# ---- puntos críticos en el gráfico de segmentos (Datos) --------------------
+rq += 1
+ds.cell(rq, QC, "Candidatos a punto crítico: nombre | x | CS fatiga | CS fluencia").font = fsmall; rq += 1
+_cx = "'Cálculo x'"
+cand = [("Cuerpo", f"=INDEX({_cx}!$A$4:$A$204,MATCH(MIN({_cx}!$R$4:$R$204),{_cx}!$R$4:$R$204,0))", f"=MIN({_cx}!$R$4:$R$204)", "=9999"),
+        ("Cuerpo (fluencia)", f"=INDEX({_cx}!$A$4:$A$204,MATCH(MIN({_cx}!$T$4:$T$204),{_cx}!$T$4:$T$204,0))", "=9999", f"=MIN({_cx}!$T$4:$T$204)")]
+for j, k in enumerate("BCD"):
+    on = f"Concentradores!{k}{R['Activa']}"
+    cand.append((f"S{j+1}", f"=Concentradores!{k}{R['x [mm]']}", f"=IF({on}=1,Concentradores!{k}{R['CS fatiga Goodman (mín A, B)']},9999)",
+                 f"=IF({on}=1,Concentradores!{k}{R['CS fluencia']},9999)"))
+for k, nom, xr in (("B", "Soldadura filete", N['xsI']), ("C", "Soldadura al ras", N['xsD'])):
+    cand.append((nom, f"={xr}", f"=Soldadura!{k}{SR['CS fatiga adoptado']}", f"=Soldadura!{k}{SR['CS fluencia adoptado']}"))
+c0 = rq
+for nom, fx, ffa, ffl in cand:
+    ds.cell(rq, QC, nom); ds.cell(rq, QC + 1, fx); ds.cell(rq, QC + 2, ffa); ds.cell(rq, QC + 3, ffl); rq += 1
+c1 = rq - 1
+QL = get_column_letter(QC); QX = get_column_letter(QC + 1)
+for colcs, simb, y, color, txt in ((QC + 2, "triangle", -0.55, "C00000", "▲ CRÍTICO fatiga"), (QC + 3, "diamond", 0.55, "000000", "◆ CRÍTICO fluencia")):
+    rg = f"${get_column_letter(colcs)}${c0}:${get_column_letter(colcs)}${c1}"
+    pos = f"MATCH(MIN({rg}),{rg},0)"
+    rq += 1
+    ds.cell(rq, QC, f'="{txt}: "&INDEX(${QL}${c0}:${QL}${c1},{pos})&" (x = "&TEXT(INDEX(${QX}${c0}:${QX}${c1},{pos}),"0")&" mm, CS = "&TEXT(MIN({rg}),"0.00")&")"')
+    ds.cell(rq, QC + 1, f"=INDEX(${QX}${c0}:${QX}${c1},{pos})"); ds.cell(rq, QC + 2, y)
+    sr = Series(Reference(ds, min_col=QC + 2, min_row=rq, max_row=rq), Reference(ds, min_col=QC + 1, min_row=rq, max_row=rq))
+    sr.tx = SeriesLabel(strRef=StrRef(f"Datos!${QL}${rq}"))
+    sr.marker.symbol = simb; sr.marker.size = 14
+    sr.marker.graphicalProperties.solidFill = color; sr.marker.graphicalProperties.line.solidFill = color
+    sr.graphicalProperties.line.noFill = True
+    gch.series.append(sr)
+ds["G18"] = ("Gráfico: tramos X1..X4 y tubo (línea gruesa), secciones S1..S3 (rojo), soldaduras (punteado). "
+             "▲ = punto más crítico a fatiga, ◆ = más crítico a fluencia (mínimo CS de cuerpo, secciones y soldaduras).")
+
 # ------------------------------------------------------------------ NOMBRES DEFINIDOS (para la memoria LaTeX)
 from openpyxl.workbook.defined_name import DefinedName
 def nm(name, ref):
@@ -1184,7 +1219,7 @@ dmap = [("vD","D"),("vt","t"),("vL","L"),("vnb","nb"),("vbw","bw"),("vmb","mb"),
         ("vSep","Sep"),("vSe","Se"),("vVa","Va"),("vVc","Vc"),
         ("veg","eg"),("vrhog","rhog"),("vAg","Ag"),("vG","G"),("vmu","mu"),("vMrot","Mrot"),("vnc","nc"),("vrnc","rnc"),
         ("vFu","Fu"),("vrFu","rFu"),("vub","ub"),("vexc","ee"),("vwu","wu"),("veu","eu"),
-        ("vDtot","Dtot"),("vXuno","X1"),("vXdos","X2"),("vXtres","X3"),("vXcuatro","X4"),("vDextmI","DmI"),("vDintmI","dmI"),("vLmI","LmI"),("vDextmD","DmD"),("vDintmD","dmD"),("vLmD","LmD"),
+        ("vDtot","Dtot"),("vLpieza","Lpz"),("vDdisco","Ddku"),("vXuno","X1"),("vXdos","X2"),("vXtres","X3"),("vXcuatro","X4"),("vDextmI","DmI"),("vDintmI","dmI"),("vLmI","LmI"),("vDextmD","DmD"),("vDintmD","dmD"),("vLmD","LmD"),
         ("vxgcero","xg0"),("vLg","Lg"),("vAmI","AmI"),("vAmD","AmD"),("vLtubo","Ltu"),("vMeje","Meje"),("vMgoma","Mgoma"),
         ("vxG","xG"),("vxtp","xtp"),("vxtope","xtope"),("vwmI","wmI"),("vwmD","wmD"),("vwg","wg"),("vSemI","SemI"),("vSemD","SemD"),("vtermMI","termMI"),("vtermMD","termMD"),("vSuMI","SuMI"),("vSuMD","SuMD"),("vSyMI","SyMI"),("vSyMD","SyMD"),("vFp","Fp"),("vFpy","Fpy"),("vFpz","Fpz"),("vDp","Dp"),("vcp","cp"),("vKp","Kp"),("vthp","thp"),("vswp","swp"),("vMp","Mp"),("vgar","gar"),("vomega","om"),("veper","eper"),("vUper","Uper"),("vUperI","UperI"),("vUperD","UperD")]
 for ln, k in dmap:
