@@ -45,7 +45,7 @@ Para regenerar la planilla desde cero (borra los datos cargados): `cd scripts &&
 4. **Resultados**: CS de fatiga y de fluencia, reacciones en rodamientos, flecha.
 5. **Tensores**: tensor medio, alternante y máximo en los puntos A (fibra extrema) y B (eje neutro).
 6. Si CS de fatiga < 1: vida limitada en ciclos y horas (hoja Concentradores).
-7. **Soldaduras** (en Datos): posición x de cada soldadura a tope tubo-muñón, Su y Sy del muñón, electrodo (lista) y sobremonta (con sobremonta / maquinada al ras). Resultado en la hoja **Soldadura** y en Resultados.
+7. **Soldaduras** (en Datos): tipo de cada lado (a tope / filete), posición x, electrodo (lista); a tope: garganta y sobremonta; filete: cateto w y radio del cordón. Resultado en las filas *adoptado* de la hoja **Soldadura** y en Resultados.
 8. **Balanceo** (en Datos): grado G, muñones (diámetro exterior, interior y largo) y engomado (inicio y largo). Resultado en Datos: M_eje, M_goma, x_G, e_per, U_per total y por apoyo, F_u.
 
 ## Procedimiento de fatiga (compendio, sección 7.1)
@@ -71,10 +71,14 @@ Para regenerar la planilla desde cero (borra los datos cargados): `cd scripts &&
 - Coeficientes de Neuber (10)-a/b leídos del texto extraído del PDF: verificar contra el impreso.
 - Soldadura maquinada al ras: Kf = 1 (el Shigley no da valor; el compendio, cap. 18, indica maquinar la sobremonta).
 - Soldadura: Kf aplicado al corte transversal en el eje neutro (mismo criterio que en Concentradores).
+- Filete: Kf = 1,5 (pie de filete transversal, cordón continuo); τM y τV con su máximo a la vez; radio del cordón = d/2 si no se carga.
 - Balanceo: un solo G para todo el rotor (eje + engomado); reparto de U_per en los apoyos por palanca respecto del centro de masa (verificar contra ISO 21940-11).
 - Velocidad crítica y peso propio: tubo + goma en todo L (sin muñones ni largo real del engomado).
 
-## Soldaduras a tope tubo-muñón (hoja Soldadura)
+## Soldaduras tubo-muñón (hoja Soldadura)
+
+Cada lado se elige a tope o filete. A tope:
+
 
 - Circunferencial, penetración completa: sección resistente = corona del tubo; garganta = espesor t, sin sobremonta (compendio cap. 18, ec. 1-2).
 - Tensiones: σ0 = M·c/I, τT = T·c/J, τV = V·Q/(I·b), con M, V, T del mismo modelo de viga en la posición x de cada soldadura.
@@ -82,9 +86,16 @@ Para regenerar la planilla desde cero (borra los datos cargados): `cd scripts &&
 - Con sobremonta: Kf = 1,2 (Shigley Tabla 9-5) y fS de forjado (Shigley sec. 9-7). Maquinada al ras: Kf = 1 (*) y fS de maquinado.
 - Fatiga con el mismo procedimiento del compendio (sección 7.1) que el resto de la planilla.
 
+Filete (método simplificado del compendio, cap. 18):
+
+- Todas las cargas como corte en la garganta t = 0,707·w (ec. 3); soldadura como línea circular de radio r: A = 1,414·π·w·r, I = 0,707·w·π·r³, J = 0,707·w·2π·r³ (Shigley Tablas 9-1 y 9-2).
+- τM = M·r/I y τV = V/A alternantes; τT = T·r/J y desbalanceo como media; composición vectorial (ec. 14).
+- Estático: τadm = mín(0,3·Su ; 0,4·Sy) del electrodo (AISC, Anexo 2), CS = τadm/τtotal (ec. 15); y Von Mises √3·τ frente a Sy mínimo.
+- Fatiga: Kf = 1,5 (Shigley T9-5), fS de forjado, σ' = √3·τ, Goodman (44)-b.
+
 ## Limitaciones
 
-- No cubre uniones atornilladas (muñones), soldaduras de filete ni a tope con penetración parcial.
+- No cubre uniones atornilladas (muñones) ni la raíz sin fundir de la soldadura a tope con penetración parcial.
 - Soldaduras: no incluye la flexión local por el cambio de rigidez ni las tensiones residuales (verificar con FEA).
 - Fatiga de ciclos altos (N > 10³); sin daño acumulado por arranques y paradas.
 - Kt solo para geometrías estándar del Anexo 2.

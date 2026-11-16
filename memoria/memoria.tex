@@ -196,15 +196,17 @@ Sección & $x$ [mm] & $K_t$ & $K_{ts}$ & $r$ [mm] & $K_f$ & $\sigma'_a$ & $\sigm
 \end{center}
 Kf en la verificación a fluencia: \ifnum\vswfl=1 aplicado\else no aplicado\fi\supu.
 
-\textbf{Soldaduras a tope tubo--muñón} (hoja Soldadura). Sección resistente: corona del tubo con espesor
-igual a la garganta\supu; $S_u$ mínimo entre tubo, muñón y electrodo (\velec); $K_f$ según sobremonta (\vsobre).
+\textbf{Soldaduras tubo--muñón} (hoja Soldadura). A tope: sección resistente = corona del tubo con espesor
+igual a la garganta\supu; $K_f$ según sobremonta (\vsobre). Filete: método simplificado del compendio (cap.~18),
+todas las cargas como corte en la garganta $0{,}707\,w$ ($w$ = \vwf~mm), $K_f = 1{,}5$ (Shigley, Tabla~9-5)\supu.
+$S_u$ mínimo entre tubo, muñón y electrodo (\velec).
 \begin{center}
-\begin{tabular}{lccccccc}
+\begin{tabular}{llccccccc}
 \toprule
-Soldadura & $x$ [mm] & Garganta [mm] & $K_f$ & $S_u$ mín [MPa] & $S_e$ [MPa] & $CS_{\text{fat}}$ & $CS_{\text{fl}}$ \\
+Soldadura & Tipo & $x$ [mm] & Garganta [mm] & $K_f$ & $S_u$ mín [MPa] & $S_e$ [MPa] & $CS_{\text{fat}}$ & $CS_{\text{fl}}$ \\
 \midrule
-Izquierda & \vsxizq & \vsgizq & \vskfizq & \vssuizq & \vsseizq & \vscsizq & \vsflizq \\
-Derecha   & \vsxder & \vsgder & \vskfder & \vssuder & \vsseder & \vscsder & \vsflder \\
+Izquierda & \vstipoizq & \vsxizq & \vsgizq & \vskfizq & \vssuizq & \vsseizq & \vscsizq & \vsflizq \\
+Derecha   & \vstipoder & \vsxder & \vsgder & \vskfder & \vssuder & \vsseder & \vscsder & \vsflder \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -268,7 +270,7 @@ Apoyo derecho\supu & $U_{per}\,x_G/L$ & \vUperD~g·mm \\
 \item[\supu] $f_T$ con el diámetro exterior del tubo; $K_{fs}$ aplicado al corte transversal en el eje neutro.
 \item[\supu] Coeficientes de Neuber leídos del texto del compendio: verificar contra el impreso.
 \item[\supu] $K_f$ en fluencia: ec.~(3) frente a ec.~(77), pendiente de definir.
-\item No incluye uniones soldadas ni atornilladas, cargas de la cuchilla ni efectos dinámicos.
+\item No incluye uniones atornilladas, cargas de la cuchilla ni efectos dinámicos. Soldaduras: sin flexión local ni tensiones residuales.
 \item Fatiga de ciclos altos; sin daño acumulado por arranques y paradas.
 \end{itemize}
 
