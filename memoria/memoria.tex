@@ -225,6 +225,25 @@ Flecha máxima [mm]         & \vfl \\
 \end{center}
 Un $CS_{\text{fatiga}}<1$ indica vida limitada (ecs.~48-b y 32); el valor admisible queda a criterio del diseñador\supu.
 
+\textbf{Por tramo} (sin concentrador, $K_f=1$). $x$ global: desde el extremo izquierdo; $x$ local: desde el
+inicio del tramo, de izquierda a derecha.
+\begin{center}
+\begin{tabular}{lcccccc}
+\toprule
+ & \multicolumn{3}{c}{Fatiga (Goodman)} & \multicolumn{3}{c}{Fluencia} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Tramo & $CS$ & $x$ global & $x$ local & $CS$ & $x$ global & $x$ local \\
+\midrule
+$X_1$ eje izq.  & \vtrcsfuno    & \vtrxgfuno    & \vtrxlfuno    & \vtrcsluno    & \vtrxgluno    & \vtrxlluno \\
+$X_2$ cono\supu & \vtrcsfdos    & \vtrxgfdos    & \vtrxlfdos    & \vtrcsldos    & \vtrxgldos    & \vtrxlldos \\
+Tubo            & \vtrcsftres   & \vtrxgftres   & \vtrxlftres   & \vtrcsltres   & \vtrxgltres   & \vtrxlltres \\
+$X_3$ disco     & \vtrcsfcuatro & \vtrxgfcuatro & \vtrxlfcuatro & \vtrcslcuatro & \vtrxglcuatro & \vtrxllcuatro \\
+$X_4$ eje der.  & \vtrcsfcinco  & \vtrxgfcinco  & \vtrxlfcinco  & \vtrcslcinco  & \vtrxglcinco  & \vtrxllcinco \\
+\bottomrule
+\end{tabular}
+\end{center}
+Posiciones en mm. Los escalones (secciones con concentrador) y las soldaduras se verifican aparte.
+
 % =================================================================
 \section{Verificaciones complementarias\supu}
 Fuera del compendio.
@@ -260,7 +279,7 @@ Apoyo derecho\supu & $U_{per}\,x_G/L$ & \vUperD~g·mm \\
 \item[\supu] Tensión por correa $T=4\,m\,L_t^2\,f^2$ (cuerda vibrante): no figura en el compendio.
 \item[\supu] $L_t=(\text{desarrollo}-\pi D)/2$ si no se mide: ramales paralelos y rullos de igual diámetro.
 \item[\supu] Mitad del peso del manchón sobre cada rullo.
-\item[\supu] Muñones como cilindro recto con el diámetro menor de sus escalones (izquierdo: Ø30 + cono, modelado Ø30 en todo el largo).
+\item[\supu] Muñones como cilindro recto con el diámetro menor de sus escalones (izquierdo: eje + cono, modelado con el Ø del eje en todo el largo; el CS del tramo $X_2$ resulta conservativo).
 \item[\supu] Apoyos en los extremos: izquierdo en el borde exterior del asiento ($x=0$; real $\approx X_1/2$), derecho al final de $X_4$. $X_4$ pendiente de medición: se adopta la cota superior. Disco derecho macizo de Ø $D$ con el material y la terminación del muñón derecho.
 \item[\supu] $K_t=2{,}7$ y $K_{ts}=2{,}2$ en los escalones Ø30: Shigley, Tabla 7-1 (escalón agudo, $r/d=0{,}02$). Fuera del compendio, a confirmar con el Anexo~2.
 \item[\supu] Transmisión: $F=K\cdot 2T/D_p$; $K$ según el tipo de transmisión, a validar.

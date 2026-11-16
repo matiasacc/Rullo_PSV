@@ -29,7 +29,7 @@ def fmt(nombre, v):
     if isinstance(v, str):
         return esc(v)
     v = float(v)
-    escs = nombre in ("vcsb", "vcsg", "vflb", "vflg") or nombre.startswith(("vkcs", "vkfl", "vscs", "vsfl"))
+    escs = nombre in ("vcsb", "vcsg", "vflb", "vflg") or nombre.startswith(("vkcs", "vkfl", "vscs", "vsfl", "vtrcs"))
     if escs and v >= 9999:
         return r"$>$\num{9999}"
     if v == 0:

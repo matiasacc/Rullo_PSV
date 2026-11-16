@@ -892,8 +892,8 @@ for t_, lab_ in enumerate(["X1 (eje izq.)", "X2 (cono)*", "Tubo", "X3 (disco)", 
         nota_ = "* Cono modelado con el Ø del eje (conservativo)" if (t_ == 1 and tipo_ == "fatiga") else ""
         rline(key_, f"{lab_}: CS {tipo_} mínimo", f"=MIN({rng(col_)})", "")
         xg_ = f"INDEX({rng('A')},MATCH(MIN({rng(col_)}),{rng(col_)},0))"
-        rs.cell(rr - 1, 3).value = f"=IF(MIN({rng(col_)})>=9999,\"-\",{xg_})"; rs.cell(rr - 1, 3).number_format = "0"
-        rs.cell(rr - 1, 4).value = f"=IF(MIN({rng(col_)})>=9999,\"-\",{xg_}-{_ini[t_]})"; rs.cell(rr - 1, 4).number_format = "0"
+        rs.cell(rr - 1, 3).value = f"=IF(MIN({rng(col_)})>=9999,\"-\",ROUND({xg_},0))"; rs.cell(rr - 1, 3).number_format = "0"
+        rs.cell(rr - 1, 4).value = f"=IF(MIN({rng(col_)})>=9999,\"-\",ROUND({xg_}-{_ini[t_]},0))"; rs.cell(rr - 1, 4).number_format = "0"
         rs.cell(rr - 1, 4).font = fb; rs.cell(rr - 1, 4).alignment = Alignment(horizontal="right")
         rs.cell(rr - 1, 5, nota_).font = fsmall
 rsec("Secciones con concentrador")
@@ -1247,6 +1247,13 @@ for ln, k in dmap:
 for ln, k in [("vsrev","srev"),("vMmax","Mmax"),("vxM","xM"),("vsmax","smax"),("vfl","fl"),("vxfl","xfl"),("vcsb","csb"),("vxcsb","xcsb"),
               ("vflb","flb"),("vcsg","csg"),("vflg","flg")]:
     nm(ln, f"Resultados!${RS[k][0]}${RS[k][1:]}")
+# resultados por tramo (memoria): CS mínimo, x global y x local
+for t_, rom in enumerate(("uno", "dos", "tres", "cuatro", "cinco")):
+    for tipo_, k_ in (("f", f"tf{t_}"), ("l", f"tl{t_}")):
+        row_ = RS[k_][1:]
+        nm(f"vtrcs{tipo_}{rom}", f"Resultados!$B${row_}")
+        nm(f"vtrxg{tipo_}{rom}", f"Resultados!$C${row_}")
+        nm(f"vtrxl{tipo_}{rom}", f"Resultados!$D${row_}")
 for k_, suf in (("B", "izq"), ("C", "der")):
     for pre, lab in (("vsx", "x [mm]"), ("vsg", "Garganta adoptada [mm]"), ("vskf", "Kf adoptado"),
                      ("vssu", "Su mínimo [MPa]"), ("vsse", "Se adoptado [MPa]"),
