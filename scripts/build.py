@@ -72,7 +72,7 @@ inp("ub", "Incluir desbalanceo por rotación en las tensiones (1 = sí, 0 = no)"
 inp("G", "Grado de calidad de balanceo G (ISO 21940-11)", 6.3, "mm/s", "* Desbalanceo residual admisible: e·ω = G")
 inp("eu", "Excentricidad de masa medida e (0 = usar e_per de G)", 0, "mm", "Para cargar una excentricidad medida (goma ovalizada, tubo descentrado)")
 sec("Muñón izquierdo (apoyo libre)")
-inp("DmI", "Muñón izquierdo: diámetro (el menor de los escalones)", 60, "mm", "* Se modela como cilindro recto con el diámetro menor (conservativo)")
+inp("DmI", "Muñón izquierdo: diámetro (el menor de los escalones)", 30, "mm", "* Ø30 de 0 a 40 mm + cono de 40 a 80 mm: se modela cilindro Ø30 en todo el largo (conservativo)")
 inp("dmI", "Muñón izquierdo: diámetro interior (0 = macizo)", 0, "mm")
 inp("LmI", "Muñón izquierdo: largo total", 150, "mm", "Desde la soldadura izquierda hasta el extremo (incluye lo que queda fuera del apoyo)")
 inp("SuMIin", "Muñón izquierdo: Su (0 = igual al tubo)", 0, "MPa")
@@ -80,9 +80,9 @@ inp("SyMIin", "Muñón izquierdo: Sy (0 = igual al tubo)", 0, "MPa")
 inp("termMI", "Muñón izquierdo: terminación superficial", "Maquinado o estirado en frío", "-", "Lista: ec. (26)")
 termMI_row = r - 1
 sec("Muñón derecho (motriz)")
-inp("DmD", "Muñón derecho: diámetro (el menor de los escalones)", 60, "mm", "* Cilindro recto con el diámetro menor")
+inp("DmD", "Muñón derecho: diámetro (el menor de los escalones)", 30, "mm", "Eje que entra a la máquina (Ø igual al izquierdo)")
 inp("dmD", "Muñón derecho: diámetro interior (0 = macizo)", 0, "mm")
-inp("LmD", "Muñón derecho: largo total", 150, "mm", "Desde la soldadura derecha hasta el extremo")
+inp("LmD", "Muñón derecho: largo desde la soldadura derecha al centro del rodamiento derecho", 150, "mm", "* PENDIENTE DE MEDICIÓN: cargar la cota superior (máximo posible). Más corto que el real queda del lado inseguro")
 inp("SuMDin", "Muñón derecho: Su (0 = igual al tubo)", 0, "MPa")
 inp("SyMDin", "Muñón derecho: Sy (0 = igual al tubo)", 0, "MPa")
 inp("termMD", "Muñón derecho: terminación superficial", "Maquinado o estirado en frío", "-", "Lista: ec. (26)")
@@ -132,10 +132,11 @@ for j in range(1, 4): ds.cell(r, 1 + j, hdr[j]).font = fbold
 ds.cell(r, 5, "Nota").font = fbold
 r += 1
 conc_rows = {}
-conc_def = [("kx", "Posición x desde el apoyo izquierdo", [60, 1140, 600], "mm", "Ej.: escalón del asiento de rodamiento"),
-            ("kon", "Activa (1 = sí, 0 = no)", [1, 1, 0], "-", ""),
-            ("kKt", "Kt flexión (Anexo 2)", [1.7, 1.7, 1.0], "-", "Leer del gráfico con r/d y D/d"),
-            ("kKts", "Kts torsión (Anexo 2)", [1.4, 1.4, 1.0], "-", ""),
+conc_def = [("kx", "Posición x desde el apoyo izquierdo", [40, "=INDEX('Cálculo x'!$A$4:$A$204,MATCH(MAX('Cálculo x'!$G$4:$G$204),'Cálculo x'!$G$4:$G$204,0))", f"={N['xsD']}+1"], "mm",
+             "S1: Ø30 izq. (x = 40). S2: tubo, x de M máx. (automático). S3: Ø30 der., 1 mm después de la soldadura der. (automático)"),
+            ("kon", "Activa (1 = sí, 0 = no)", [1, 1, 1], "-", ""),
+            ("kKt", "Kt flexión (Anexo 2)", [2.7, 1.0, 2.7], "-", "* Ø30: Shigley Tabla 7-1, escalón agudo r/d = 0,02 (fuera del compendio; confirmar con Anexo 2). Escalón sobre cono: conservativo. Tubo: Kt = 1"),
+            ("kKts", "Kts torsión (Anexo 2)", [2.2, 1.0, 2.2], "-", ""),
             ("kr", "Radio de entalla r", [2.0, 2.0, 2.0], "mm", "Para la sensibilidad q (Neuber, ec. 9)")]
 ds.column_dimensions["E"].width = 40
 for key, lab, vals, unit, note in conc_def:

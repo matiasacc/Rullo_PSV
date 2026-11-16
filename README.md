@@ -65,6 +65,10 @@ Para regenerar la planilla desde cero (borra los datos cargados): `cd scripts &&
 - `Lt = (desarrollo − π·D)/2` si no se carga a mano: ramales paralelos, rullos de igual diámetro, línea primitiva ≈ D exterior.
 - Mitad del peso del manchón sobre cada rullo.
 - Torque: entra por un extremo y lo toman las correas de forma pareja en B; constante en el tiempo.
+- Apoyo izquierdo en x = 0, borde exterior del asiento (real ≈ 20 mm): conservativo.
+- Apoyo derecho: distancia soldadura der. → centro del rodamiento **pendiente de medición**; se carga la cota superior (más corta que la real es inseguro).
+- Muñón izquierdo (Ø30 de 0 a 40 mm + cono de 40 a 80 mm) modelado como cilindro Ø30 en todo el largo: conservativo. Cerca de x = 80 el CS del cuerpo sale bajo por este supuesto.
+- Kt de los escalones Ø30: Shigley Tabla 7-1, escalón agudo r/d = 0,02 (Kt = 2,7; Kts = 2,2). Fuera del compendio: confirmar con el Anexo 2. Aplicado sobre una transición cónica: conservativo.
 - Kfs aplicado al corte transversal en el eje neutro (conservativo).
 - fT con el diámetro exterior del tubo.
 - Kf en la verificación a fluencia: selector en Datos (ec. 3 frente a ec. 77). Pendiente de definir.
