@@ -41,6 +41,12 @@ def fmt(nombre, v):
     s = repr(int(v)) if float(v).is_integer() else repr(v)
     return r"\num{" + s + "}"
 
+# Excel no distingue mayúsculas en los nombres definidos (puede guardar vsKfizq en vez de vskfizq),
+# pero LaTeX sí: se usa la grafía que aparece en memoria.tex.
+import re
+_usados = set(re.findall(r"\\(v[A-Za-z]+)", (raiz / "memoria" / "memoria.tex").read_text(encoding="utf-8")))
+_grafia = {u.lower(): u for u in _usados}
+
 faltan = []
 lineas = ["% Generado por scripts/exportar_datos.py -- no editar a mano",
           f"% Planilla: {xlsx.name}"]
@@ -48,6 +54,7 @@ for nombre, dn in sorted(wb.defined_names.items()):
     if not nombre.startswith("v"):
         continue
     hoja, ref = next(iter(dn.destinations))
+    nombre = _grafia.get(nombre.lower(), nombre)
     val = wb[hoja][ref.replace("$", "")].value
     if val is None:
         faltan.append(nombre)
