@@ -156,19 +156,21 @@ else:
     for xv in (0, X1, xsI, xsD, xdD, L):
         ax.plot([xv, xv], [yc - D * 0.08, -min(R, rI) if xv == 0 else -R - eg * (xsI <= xv <= xsD)], color="k", lw=lwt * 0.7)
     corto = L * 0.06
-    segs = [(0, X1, f"X1 = {X1:.0f}"), (X1, xsI, f"X2 = {X2:.0f}"), (xsI, xsD, f"X tubo = {xsD - xsI:.0f}"),
-            (xsD, xdD, f"X3 = {X3:.0f}"), (xdD, L, f"X4 = {X4:.0f}")]
+    segs = [(0, X1, "X1"), (X1, xsI, "X2"), (xsI, xsD, "X tubo"), (xsD, xdD, "X3"), (xdD, L, "X4")]
     alt = 0
     for x1, x2, t in segs:
         if x2 - x1 <= 0:
             continue
         if x2 - x1 < corto:            # tramo corto: texto escalonado para que no se pisen
-            cota(x1, x2, yc, t, dy=alt * D * 0.22); alt = 1 - alt
+            cota(x1, x2, yc, t, dy=alt * D * 0.16); alt = 1 - alt
         else:
             cota(x1, x2, yc, t)
-    cota(0, L, yc - D * 0.45, f"Distancia total L = {L:.0f} mm")
+    cota(0, L, yc - D * 0.45, "L (distancia total)")
+    ax.text(L / 2, yc - D * 0.75,
+            f"X1 = {X1:.0f}    X2 = {X2:.0f}    X tubo = {xsD - xsI:.0f}    X3 = {X3:.0f}    X4 = {X4:.0f}    L = {L:.0f}    [mm]",
+            ha="center", va="top", fontsize=7.5)
     ax.set_aspect("equal"); ax.axis("off")
-    ax.set_xlim(-L * 0.04, L * 1.04); ax.set_ylim(yc - D * 0.6, ym + D * 0.45)
+    ax.set_xlim(-L * 0.04, L * 1.04); ax.set_ylim(yc - D * 1.0, ym + D * 0.45)
     fig.tight_layout(pad=0.2); fig.savefig(raiz / "memoria" / "figuras" / "esquema.pdf")
 
     fig, ax = plt.subplots(3, 1, figsize=(6.3, 6.6), sharex=True)
