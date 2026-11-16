@@ -124,6 +124,8 @@ term_row = r - 1
 inp("f1", "Otros factores f1 (temperatura, confiabilidad, etc.)", 1.0, "-", "Ec. (20). 1 = sin reducción adicional")
 inp("swfl", "¿Aplicar Kf en la verificación a fluencia? (1 = sí, 0 = no)", 1, "-",
     "* A DEFINIR entre ambos: ec. (3) dice que en dúctil estático no se usa Kt; ec. (77) toma σm+σa. 1 es lo conservativo")
+inp("CSadm", "CS mínimo admisible (criterio Verifica / No verifica)", 1.0, "-",
+    "* Queda a criterio del diseñador. Se compara con el menor CS (fatiga y fluencia) de cada parte")
 
 sec("Soldaduras tubo-muñón (extremos del tubo): a tope o filete")
 der("xsI", "Posición x de la soldadura izquierda (filete) = X1 + X2", f"={N['X1']}+{N['X2']}", "mm", "Fin del cono, inicio del tubo", fmt="0.0")
@@ -913,11 +915,23 @@ for k, lado in (("B", "izquierda"), ("C", "derecha")):
     rline(f"sfl{k}", f"Soldadura {lado}: CS fluencia", f"=Soldadura!{k}{SR['CS fluencia adoptado']}", "-",
           "A tope: ec. (77). Filete: mín(ec. 77, CS estático AISC ec. 15)")
     rline(f"sv{k}", f"Soldadura {lado}: vida", f"=Soldadura!{k}{SR['Vida adoptada [ciclos]']}", "ciclos", fmt="#,##0")
+rsec("Verificación: menor CS (fatiga y fluencia) frente al CS admisible de Datos")
+_adm = N['CSadm']
+def _ok(cs_):
+    return f'=IF({cs_}>={_adm},"Verifica","No verifica")'
+for t_, lab_ in enumerate(["X1 (eje izq.)", "X2 (cono)", "Tubo", "X3 (disco)", "X4 (eje der.)"]):
+    rline(f"ok{t_}", f"{lab_}", _ok(f"MIN({RS[f'tf{t_}']},{RS[f'tl{t_}']})"), "", fmt="@")
+for j, k in enumerate("BCD"):
+    rline(f"okS{j}", f"Sección {j+1}",
+          f'=IF(Concentradores!{k}{R["Activa"]}=1,IF(MIN(Concentradores!{k}{R["CS fatiga Goodman (mín A, B)"]},Concentradores!{k}{R["CS fluencia"]})>={_adm},"Verifica","No verifica"),"inactiva")', "", fmt="@")
+for k, lado in (("B", "izquierda"), ("C", "derecha")):
+    rline(f"okW{k}", f"Soldadura {lado}", _ok(f"MIN({RS[f'scs{k}']},{RS[f'sfl{k}']})"), "", fmt="@")
 rsec("Gobierna")
 rline("csg", "CS fatiga mínimo (cuerpo, concentradores y soldaduras)",
       f"=MIN({RS['csb']},{RS['cs0']},{RS['cs1']},{RS['cs2']},{RS['scsB']},{RS['scsC']})", "-",
       "* Si CS < 1: vida limitada, ver hojas Concentradores / Tensores / Soldadura")
 rline("flg", "CS fluencia mínimo", f"=MIN({RS['flb']},{RS['fl0']},{RS['fl1']},{RS['fl2']},{RS['sflB']},{RS['sflC']})", "-")
+rline("okg", "Verificación global", _ok(f"MIN({RS['csg']},{RS['flg']})"), "", fmt="@")
 def srev(sa, sm): return f"{sa}/(1-{sm}/{Su})"
 cands = [srev("Tensores!$G$11", "Tensores!$C$11"), srev("Tensores!$S$11", "Tensores!$O$11")]
 for k in "BCD":
@@ -1247,6 +1261,15 @@ for ln, k in dmap:
 for ln, k in [("vsrev","srev"),("vMmax","Mmax"),("vxM","xM"),("vsmax","smax"),("vfl","fl"),("vxfl","xfl"),("vcsb","csb"),("vxcsb","xcsb"),
               ("vflb","flb"),("vcsg","csg"),("vflg","flg")]:
     nm(ln, f"Resultados!${RS[k][0]}${RS[k][1:]}")
+# verificación (Verifica / No verifica)
+for t_, rom in enumerate(("uno", "dos", "tres", "cuatro", "cinco")):
+    nm(f"vtrok{rom}", f"Resultados!${RS[f'ok{t_}'][0]}${RS[f'ok{t_}'][1:]}")
+for j, rom in enumerate(("uno", "dos", "tres")):
+    nm(f"vkok{rom}", f"Resultados!${RS[f'okS{j}'][0]}${RS[f'okS{j}'][1:]}")
+for k, suf in (("B", "izq"), ("C", "der")):
+    nm(f"vsok{suf}", f"Resultados!${RS[f'okW{k}'][0]}${RS[f'okW{k}'][1:]}")
+nm("vokg", f"Resultados!${RS['okg'][0]}${RS['okg'][1:]}")
+nm("vCSadm", N['CSadm'])
 # resultados por tramo (memoria): CS mínimo, x global y x local
 for t_, rom in enumerate(("uno", "dos", "tres", "cuatro", "cinco")):
     for tipo_, k_ in (("f", f"tf{t_}"), ("l", f"tl{t_}")):

@@ -23,7 +23,7 @@ Fuente de cálculo: *Compendio de Cálculo Estructural II*, FCEFyN-UNC 2024, cap
 2. Agregar una fila en `memoria/revisiones.tex` si el cambio es relevante.
 3. Subir los cambios (`git push`). La acción de GitHub *Memoria de cálculo* exporta los datos, compila el LaTeX y sube `memoria/memoria.pdf` actualizado.
 
-En local: `python3 scripts/exportar_datos.py` y después `cd memoria && latexmk -pdf memoria.tex`.
+En local: `python scripts/actualizar.py` (recalcula con LibreOffice si está instalado; si no, usa lo guardado por Excel) y compila `memoria.pdf` y `resumen.pdf`.
 
 Logo: colocar `memoria/figuras/logo_dayco.png` (si no está, el encabezado muestra el texto DAYCO).
 

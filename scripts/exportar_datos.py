@@ -67,6 +67,14 @@ for i, rom in enumerate(("uno", "dos", "tres"), 1):
 if not filas:
     filas.append("\\multicolumn{10}{c}{Sin secciones activas} \\\\")
 lineas.append("\\newcommand{\\vFilasConc}{" + " ".join(filas) + "}")
+filasv = []
+for i, rom in enumerate(("uno", "dos", "tres"), 1):
+    if f"\\newcommand{{\\vkon{rom}}}{{1}}" in lineas:
+        c = lambda k: f"\\vk{k}{rom}"
+        filasv.append(f"S{i} & {c('x')} & {c('Kt')} & {c('Kts')} & {c('r')} & {c('Kf')} & {c('cs')} & {c('fl')} & {c('ok')} \\\\")
+if not filasv:
+    filasv.append("\\multicolumn{9}{c}{Sin secciones activas} \\\\")
+lineas.append("\\newcommand{\\vFilasConcV}{" + " ".join(filasv) + "}")
 _hb, _rb = next(iter(wb.defined_names["vbfin"].destinations))
 _bfin = wb[_hb][_rb.replace("$", "")].value
 _ha, _ra = next(iter(wb.defined_names["vainicio"].destinations))
@@ -101,50 +109,67 @@ def marcas(a):
 if None in x + M or None in g.values():
     faltan.append("Cálculo x / geometría")
 else:
-    # esquema (vista de frente, cotas X1..X4 de la hoja Datos) ---------------
+    # esquema (vista de frente, a escala 1:1 en ambos ejes) ---------------------
     L, xsI, xsD, D = g["vL"], g["vxsI"], g["vxsD"], g["vD"]
     X1, X2, X3, X4 = g["vXuno"], g["vXdos"], g["vXtres"], g["vXcuatro"]
-    rI, rD, eg = g["vDextmI"] / 2, g["vDextmD"] / 2, g["veg"]
-    fig, ax = plt.subplots(figsize=(6.6, 2.9))
-    ax.add_patch(Rectangle((0, -rI), X1, 2 * rI, fc="0.85", ec="k", lw=0.6))                       # eje izq.
-    ax.add_patch(Polygon([[X1, -rI], [xsI, -D / 2], [xsI, D / 2], [X1, rI]], closed=True, fc="0.85", ec="k", lw=0.6))  # cono
-    ax.add_patch(Rectangle((xsI, -D / 2), xsD - xsI, D, fc="0.7", ec="k", lw=0.8))                  # tubo
-    Dd = g["vDdisco"]
-    ax.add_patch(Rectangle((xsD, -Dd / 2), X3, Dd, fc="0.5", ec="k", lw=0.8))                       # disco
+    rI, rD, eg, Dd = g["vDextmI"] / 2, g["vDextmD"] / 2, g["veg"], g["vDdisco"]
+    xdD = xsD + X3
+    R = D / 2
+    lw, lwt = 0.7, 0.35
+    plt.rcParams["hatch.linewidth"] = 0.3
+    fig, ax = plt.subplots(figsize=(7.0, 2.7))
+    # piezas
+    ax.add_patch(Rectangle((0, -rI), X1, 2 * rI, fc="white", ec="k", lw=lw))
+    ax.add_patch(Polygon([[X1, -rI], [xsI, -R], [xsI, R], [X1, rI]], closed=True, fc="white", ec="k", lw=lw))
+    ax.add_patch(Rectangle((xsI, -R), xsD - xsI, D, fc="0.88", ec="k", lw=lw))
+    ax.add_patch(Rectangle((xsD, -Dd / 2), X3, Dd, fc="0.70", ec="k", lw=lw))
     if X4 > 0:
-        ax.add_patch(Rectangle((xsD + X3, -rD), X4, 2 * rD, fc="0.85", ec="k", lw=0.6))             # eje der.
+        ax.add_patch(Rectangle((xdD, -rD), X4, 2 * rD, fc="white", ec="k", lw=lw))
+    # engomado (rayado fino)
     x0g, Lg = g["vxgcero"], g["vLg"]
-    for y0 in (D / 2, -D / 2 - eg):
-        ax.add_patch(Rectangle((x0g, y0), Lg, eg, fc="0.35", ec="k", lw=0.4))
+    for y0 in (R, -R - eg):
+        ax.add_patch(Rectangle((x0g, y0), Lg, eg, fc="white", ec="k", lw=lwt, hatch="//////"))
+    # eje de simetría
+    ax.plot([-L * 0.03, L * 1.03], [0, 0], color="k", lw=lwt, ls=(0, (12, 3, 2, 3)))
+    # manchón: cota sobre el engomado con tope en el disco
     a0, B = g["vainicio"], g["vB"]
-    ax.add_patch(Rectangle((a0, D / 2 + eg), B, D * 0.18, fc="none", ec="#C00000", hatch="////", lw=0.8))
-    ax.plot([xsD, xsD], [D / 2 + eg, D / 2 + eg + D * 0.3], color="#C00000", lw=1.2)
-    ax.text(a0 + B / 2, D / 2 + eg + D * 0.24, "manchón (tope en el disco)", ha="center", color="#C00000", fontsize=8)
-    for xa, h in ((0, rI), (L, rD if X4 > 0 else D / 2)):
-        ax.add_patch(Polygon([[xa, -h], [xa - L * 0.02, -h - D * 0.25], [xa + L * 0.02, -h - D * 0.25]], closed=True, fc="w", ec="k", lw=0.8))
-    ax.text(-L * 0.025, -rI - D * 0.1, "apoyo izq.", ha="right", fontsize=8)
-    ax.text(L + L * 0.025, -(rD if X4 > 0 else D / 2) - D * 0.1, "apoyo der.", ha="left", fontsize=8)
-    ax.text(xsI, D / 2 + eg + D * 0.05, "filete", ha="center", fontsize=7, color="0.3")
-    ax.text(xsD, D / 2 + eg + D * 0.05, "al ras", ha="right", fontsize=7, color="0.3")
-    if g["vswp"] == 1:
-        xp_, rp = L + g["vcp"], g["vDp"] / 2
-        ax.add_patch(Rectangle((xp_ - L * 0.012, -rp), L * 0.024, 2 * rp, fc="w", ec="k", lw=0.8))
-        ax.text(xp_, rp + D * 0.06, "polea", ha="center", fontsize=8)
-    else:
-        ax.annotate("T", xy=(L, 0), xytext=(L + L * 0.06, D * 0.45), ha="center", fontsize=8,
-                    arrowprops=dict(arrowstyle="->", lw=0.8))
-    # cotas
-    def cota(x1, x2, y, t, fs=7):
-        ax.annotate("", xy=(x2, y), xytext=(x1, y), arrowprops=dict(arrowstyle="<->", lw=0.5))
-        ax.text((x1 + x2) / 2, y + D * 0.04, t, ha="center", fontsize=fs)
-    yc = -D / 2 - eg - D * 0.3
-    cota(0, X1, yc, "X1"); cota(X1, xsI, yc, "X2"); cota(xsI, xsD, yc, f"X_tubo = {xsD - xsI:.0f}")
-    cota(xsD, xsD + X3, yc, "X3")
-    if X4 > 0: cota(xsD + X3, L, yc, "X4")
-    cota(0, L, yc - D * 0.35, f"Dist. total = L = {L:.0f} mm", fs=8)
-    ext = max(L * 0.06, 40) + (g["vcp"] if g["vswp"] == 1 else 0)
-    ax.set_xlim(-ext * 2.2, L + ext * 2.2); ax.set_ylim(yc - D * 0.45, D / 2 + eg + D * 0.45); ax.set_aspect("auto"); ax.axis("off")
-    fig.tight_layout(); fig.savefig(raiz / "memoria" / "figuras" / "esquema.pdf")
+    ym = R + eg + D * 0.22
+    ax.annotate("", xy=(a0 + B, ym), xytext=(a0, ym), arrowprops=dict(arrowstyle="|-|", lw=lwt, mutation_scale=4))
+    ax.text(a0 + B / 2, ym + D * 0.06, f"manchón B = {B:.0f} mm (tope en el disco)", ha="center", va="bottom", fontsize=7.5)
+    # apoyos (en los extremos)
+    for xa, h in ((0, rI), (L, rD if X4 > 0 else Dd / 2)):
+        t = D * 0.22
+        ax.add_patch(Polygon([[xa, -h], [xa - t * 0.6, -h - t], [xa + t * 0.6, -h - t]], closed=True, fc="white", ec="k", lw=lw))
+        ax.plot([xa - t, xa + t], [-h - t, -h - t], color="k", lw=lw)
+    # soldaduras y secciones
+    def marca(xv, txt, y, va):
+        ax.annotate(txt, xy=(xv, y), xytext=(xv, y + (D * 0.35 if va == "bottom" else -D * 0.35)), ha="center", va=va,
+                    fontsize=7.5, arrowprops=dict(arrowstyle="-", lw=lwt))
+    marca(xsI, "filete", R + eg + D * 0.05, "bottom")
+    marca(xsD, "a tope al ras", R + eg + D * 0.05, "bottom")
+    # cotas en cadena
+    yc = -R - eg - D * 0.55
+    def cota(x1, x2, y, t, dy=0.0):
+        ax.annotate("", xy=(x2, y), xytext=(x1, y), arrowprops=dict(arrowstyle="<|-|>", lw=lwt, mutation_scale=4,
+                                                                  shrinkA=0, shrinkB=0))
+        ax.text((x1 + x2) / 2, y + D * 0.05 + dy, t, ha="center", va="bottom", fontsize=7.5)
+    for xv in (0, X1, xsI, xsD, xdD, L):
+        ax.plot([xv, xv], [yc - D * 0.08, -min(R, rI) if xv == 0 else -R - eg * (xsI <= xv <= xsD)], color="k", lw=lwt * 0.7)
+    corto = L * 0.06
+    segs = [(0, X1, f"X1 = {X1:.0f}"), (X1, xsI, f"X2 = {X2:.0f}"), (xsI, xsD, f"X tubo = {xsD - xsI:.0f}"),
+            (xsD, xdD, f"X3 = {X3:.0f}"), (xdD, L, f"X4 = {X4:.0f}")]
+    alt = 0
+    for x1, x2, t in segs:
+        if x2 - x1 <= 0:
+            continue
+        if x2 - x1 < corto:            # tramo corto: texto escalonado para que no se pisen
+            cota(x1, x2, yc, t, dy=alt * D * 0.22); alt = 1 - alt
+        else:
+            cota(x1, x2, yc, t)
+    cota(0, L, yc - D * 0.45, f"Distancia total L = {L:.0f} mm")
+    ax.set_aspect("equal"); ax.axis("off")
+    ax.set_xlim(-L * 0.04, L * 1.04); ax.set_ylim(yc - D * 0.6, ym + D * 0.45)
+    fig.tight_layout(pad=0.2); fig.savefig(raiz / "memoria" / "figuras" / "esquema.pdf")
 
     fig, ax = plt.subplots(3, 1, figsize=(6.3, 6.6), sharex=True)
     ax[0].plot(x, [m / 1e3 for m in My], "k--", lw=1, label="$M_y$ (manchón)")

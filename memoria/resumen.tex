@@ -18,7 +18,6 @@
 \newcommand{\titulo}{Resumen de resultados -- Rullo delantero torno PSV}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\IfFileExists{figuras/logo_dayco.png}{\includegraphics[height=1.1cm]{figuras/logo_dayco.png}}{\textsf{DAYCO}}}
 \fancyhead[R]{\small\titulo}
 \fancyfoot[R]{\small Página \thepage\ de \pageref{LastPage}}
 \fancyfoot[L]{\small Datos: \vArchivo\ (\vFechaDatos)}
@@ -47,17 +46,17 @@ Los resultados no tienen validez hasta corregir los datos.}}\end{center}
 \textbf{CS mínimo por tramo} (sin concentrador, $K_f=1$). $x$ global: desde el extremo izquierdo;
 $x$ local: desde el inicio del tramo, de izquierda a derecha. Posiciones en mm.
 \begin{center}
-\begin{tabular}{lcccccc}
+\begin{tabular}{lccccccl}
 \toprule
- & \multicolumn{3}{c}{Fatiga (Goodman)} & \multicolumn{3}{c}{Fluencia} \\
+ & \multicolumn{3}{c}{Fatiga (Goodman)} & \multicolumn{3}{c}{Fluencia} & \\
 \cmidrule(lr){2-4}\cmidrule(lr){5-7}
-Tramo & $CS$ & $x$ global & $x$ local & $CS$ & $x$ global & $x$ local \\
+Tramo & $CS$ & $x$ global & $x$ local & $CS$ & $x$ global & $x$ local & Verificación \\
 \midrule
-$X_1$ eje izq.  & \vtrcsfuno    & \vtrxgfuno    & \vtrxlfuno    & \vtrcsluno    & \vtrxgluno    & \vtrxlluno \\
-$X_2$ cono\supu & \vtrcsfdos    & \vtrxgfdos    & \vtrxlfdos    & \vtrcsldos    & \vtrxgldos    & \vtrxlldos \\
-Tubo            & \vtrcsftres   & \vtrxgftres   & \vtrxlftres   & \vtrcsltres   & \vtrxgltres   & \vtrxlltres \\
-$X_3$ disco     & \vtrcsfcuatro & \vtrxgfcuatro & \vtrxlfcuatro & \vtrcslcuatro & \vtrxglcuatro & \vtrxllcuatro \\
-$X_4$ eje der.  & \vtrcsfcinco  & \vtrxgfcinco  & \vtrxlfcinco  & \vtrcslcinco  & \vtrxglcinco  & \vtrxllcinco \\
+$X_1$ eje izq.  & \vtrcsfuno    & \vtrxgfuno    & \vtrxlfuno    & \vtrcsluno    & \vtrxgluno    & \vtrxlluno & \vtrokuno \\
+$X_2$ cono\supu & \vtrcsfdos    & \vtrxgfdos    & \vtrxlfdos    & \vtrcsldos    & \vtrxgldos    & \vtrxlldos & \vtrokdos \\
+Tubo            & \vtrcsftres   & \vtrxgftres   & \vtrxlftres   & \vtrcsltres   & \vtrxgltres   & \vtrxlltres & \vtroktres \\
+$X_3$ disco     & \vtrcsfcuatro & \vtrxgfcuatro & \vtrxlfcuatro & \vtrcslcuatro & \vtrxglcuatro & \vtrxllcuatro & \vtrokcuatro \\
+$X_4$ eje der.  & \vtrcsfcinco  & \vtrxgfcinco  & \vtrxlfcinco  & \vtrcslcinco  & \vtrxglcinco  & \vtrxllcinco & \vtrokcinco \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -66,26 +65,28 @@ $X_4$ eje der.  & \vtrcsfcinco  & \vtrxgfcinco  & \vtrxlfcinco  & \vtrcslcinco  
 \begin{center}
 \begin{tabular}{lccccccccl}
 \toprule
-Sección & $x$ [mm] & $K_t$ & $K_{ts}$ & $r$ [mm] & $K_f$ & $\sigma'_a$ & $\sigma'_m$ & $CS_{\text{fat}}$ & $CS_{\text{fl}}$ \\
+Sección & $x$ [mm] & $K_t$ & $K_{ts}$ & $r$ [mm] & $K_f$ & $CS_{\text{fat}}$ & $CS_{\text{fl}}$ & Verificación \\
 \midrule
-\vFilasConc
+\vFilasConcV
 \bottomrule
 \end{tabular}
 \end{center}
 
 \textbf{Soldaduras.}
 \begin{center}
-\begin{tabular}{llccc}
+\begin{tabular}{llcccl}
 \toprule
-Soldadura & Tipo & $x$ [mm] & $CS_{\text{fat}}$ & $CS_{\text{fl}}$ \\
+Soldadura & Tipo & $x$ [mm] & $CS_{\text{fat}}$ & $CS_{\text{fl}}$ & Verificación \\
 \midrule
-Izquierda & \vstipoizq & \vsxizq & \vscsizq & \vsflizq \\
-Derecha   & \vstipoder & \vsxder & \vscsder & \vsflder \\
+Izquierda & \vstipoizq & \vsxizq & \vscsizq & \vsflizq & \vsokizq \\
+Derecha   & \vstipoder & \vsxder & \vscsder & \vsflder & \vsokder \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\textbf{Mínimos globales:} $CS_{\text{fatiga}}=\vcsg$, $CS_{\text{fluencia}}=\vflg$. Un $CS<1$ queda a criterio del diseñador\supu.
+\textbf{Mínimos globales:} $CS_{\text{fatiga}}=\vcsg$, $CS_{\text{fluencia}}=\vflg$ --- \textbf{\vokg}.
+
+Criterio: Verifica si el menor CS (fatiga y fluencia) de cada parte es $\ge$ \vCSadm\ (CS admisible cargado en la planilla\supu).
 
 {\small \supu\ Supuestos a validar: ver memoria de cálculo, sección Supuestos y limitaciones. $X_2$: cono modelado con el Ø del eje (conservativo).}
 
